@@ -19,10 +19,10 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
               <Globe className="text-white w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
               Travelex
             </span>
           </Link>
@@ -33,15 +33,15 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 to={link.to}
-                className="text-slate-600 hover:text-blue-600 font-medium transition-colors"
-                activeProps={{ className: 'text-blue-600 font-bold' }}
+                className="text-slate-600 hover:text-orange-600 font-medium transition-colors"
+                activeProps={{ className: 'text-orange-600 font-bold' }}
               >
                 {link.name}
               </Link>
             ))}
             <button 
               onClick={() => navigate({ to: '/signin' })}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
+              className="bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95"
             >
               Sign In
             </button>
@@ -69,14 +69,14 @@ const Navbar = () => {
               to={link.to}
               onClick={() => setIsMenuOpen(false)}
               className="block text-slate-600 font-medium"
-              activeProps={{ className: 'text-blue-600 font-bold' }}
+              activeProps={{ className: 'text-orange-600 font-bold' }}
             >
               {link.name}
             </Link>
           ))}
           <button 
             onClick={() => navigate({ to: '/signin' })}
-            className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+            className="w-full bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold"
           >
             Sign In
           </button>
