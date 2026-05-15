@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import { Globe, ArrowLeft, Mail, Lock, User } from 'lucide-react';
-
+import button from '../../components/Forms/Buttons/GenericButton';
+import Button from '@/components/ui/Button';
 export const Route = createFileRoute('/_auth/signup')({
   component: SignUpPage,
 });
@@ -11,6 +12,7 @@ function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+     
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button 
           onClick={() => navigate({ to: '/' })}
@@ -41,6 +43,7 @@ function SignUpPage() {
       >
         <div className="bg-white py-10 px-6 shadow-2xl shadow-slate-200 sm:rounded-[32px] border border-slate-100 sm:px-12">
           <form className="space-y-6">
+       
             <div>
               <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">
                 Full Name

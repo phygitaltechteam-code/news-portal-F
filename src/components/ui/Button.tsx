@@ -5,6 +5,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
+  label:string
 }
 
 const Button: React.FC<ButtonProps> = ({ 
@@ -12,6 +13,7 @@ const Button: React.FC<ButtonProps> = ({
   size = 'md', 
   children, 
   className, 
+  label,
   ...props 
 }) => {
   const baseStyles = "rounded-2xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2";
@@ -33,7 +35,7 @@ const Button: React.FC<ButtonProps> = ({
     <motion.button
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.98 }}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className} ${label ? 'flex-row' : ''}`}
       {...(props as any)}
     >
       {children}

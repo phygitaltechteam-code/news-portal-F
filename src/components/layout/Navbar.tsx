@@ -10,6 +10,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Destinations', to: '/destinations' },
     { name: 'Tours', to: '/tours' },
+    { name: 'Add Package', to: '/add-package' },
     { name: 'About', to: '/about' },
     { name: 'Blog', to: '/blog' },
   ];
