@@ -15,7 +15,7 @@ type Button<T> = {
 export type Column<T> = {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, index?: number) => React.ReactNode;
   className?: string;
   buttons?: Button<T>[];
   sortable?: boolean;
@@ -200,7 +200,7 @@ export const GenericTable = <T,>({
                     >
                       <div className="py-1.5">
                         {column.render
-                          ? column.render(item)
+                          ? column.render(item, rowIndex)
                           : typeof value === 'string'
                             ? value
                             : JSON.stringify(value)}

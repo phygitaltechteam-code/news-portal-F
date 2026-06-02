@@ -49,7 +49,7 @@ const GenericInputField: React.FC<InputProps> = ({
       <input
         type={type}
         placeholder={placeholder}
-        className="w-full rounded border-[1.7px] border-stroke bg-transparent px-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        className="w-full rounded py-2 border-[1.7px] border-red-600 bg-transparent px-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         disabled={disabled}
         defaultValue={defaultValue}
         {...register(name, validation)}

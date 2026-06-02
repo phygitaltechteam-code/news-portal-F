@@ -34,7 +34,7 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
       name={name}
       control={control}
       render={({field: {onChange, onBlur, value, name}}) => (
-        <div className="w-full">
+        <div className="w-full/* max-w-sm */">
           {label && (
             <label className="mb-2 block text-black dark:text-white">
               {label}
@@ -47,14 +47,14 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
           <div className="relative">
             <select
               name={name}
-              value={value || ''}
+              value={value as string || ''}
               onChange={(e) => {
                 setIsOptionSelected(true);
                 onChange(e.target.value);
               }}
               onBlur={onBlur}
               disabled={disabled}
-              className="w-full appearance-none rounded-md border border-stroke bg-transparent px-2 py-1 text-sm text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary dark:disabled:bg-black"
+              className="w-full h-10 appearance-none rounded-md border border-red-500 bg-transparent px-2 py-1 text-sm text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary dark:disabled:bg-black"
             >
               <option value="" disabled hidden>
                 {defaultOption || `Select ${label}`}

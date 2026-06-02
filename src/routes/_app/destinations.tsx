@@ -1,13 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Navigate, useNavigate } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Star, Filter } from 'lucide-react';
 import Newsletter from '../../components/sections/Newsletter';
+import destination from '../../assets/image.png';
 
 export const Route = createFileRoute('/_app/destinations')({
   component: DestinationsPage,
 });
 
 function DestinationsPage() {
+
+  const navigate = useNavigate();
   const categories = ['All', 'Tropical', 'Mountain', 'Coastal', 'Cultural', 'City'];
   
   const destinations = [
@@ -76,8 +79,9 @@ function DestinationsPage() {
               >
                 <div className="relative aspect-[4/3] bg-slate-200 overflow-hidden">
                    {/* Placeholder */}
-                  <div className="absolute inset-0 flex items-center justify-center text-slate-400 opacity-20">
-                    <MapPin className="w-16 h-16" />
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-400 ">
+                    {/* <MapPin className="w-16 h-16" /> */}
+                    <img src={destination} alt={dest.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   
@@ -102,7 +106,11 @@ function DestinationsPage() {
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Starts from</p>
                       <p className="text-xl font-bold text-slate-900">{dest.price}</p>
                     </div>
-                    <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-600 transition-all active:scale-95 text-sm">
+                    <button
+                    
+                    onClick={()=>navigate({to:'/package/$1'})}
+                    
+                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-600 transition-all active:scale-95 text-sm">
                       Details
                     </button>
                   </div>

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {ReactNode, useState} from 'react';
 import {FaAngleDown, FaAngleRight} from 'react-icons/fa6';
 
 interface ChildItem {
@@ -13,10 +13,17 @@ interface CategoryItem {
 }
 
 // Define Column interface
-export interface Column {
+// Find your Column type definition and update it
+
+export type Column<T = any> = {
   header: string;
-  accessor: string; // Allow accessor to be any string
-}
+  accessor: keyof T | ((item: T) => ReactNode);
+  render?: (item: T, index?: number) => ReactNode;
+  width?: string;
+  // ...other properties...
+};
+
+// ...existing code...
 
 // Define ExpandableTableProps interface
 interface ExpandableTableProps {
@@ -123,7 +130,7 @@ const GenericExpandTable: React.FC<ExpandableTableProps> = ({
                           key={colIndex}
                           className="border-b border-[#eee] px-4 py-2 dark:border-strokedark"
                         >
-                          {child[col.accessor]}
+                          {child[col.accessor as keyof ChildItem] || 'N/A'}
                         </td>
                       ))}
                     </tr>

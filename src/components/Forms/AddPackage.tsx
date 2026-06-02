@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   Trash2, 
@@ -15,11 +15,13 @@ import {
   BedDouble, 
   Navigation, 
   FileText,
-  Check
+  Eye,
+  PencilLine
 } from 'lucide-react';
 import GenericInputField from './Input/GenericInputField';
 import GenericTextArea from './TextArea/GenericTextArea';
 import GenericButton from './Buttons/GenericButton';
+import PackagePreview from './PackagePreview';
 
 type FormValues = {
   packageName: string;
@@ -42,6 +44,7 @@ type FormValues = {
 
 export default function AddPackage() {
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [activeView, setActiveView] = useState<'form' | 'preview'>('form');
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -145,18 +148,62 @@ export default function AddPackage() {
               Create a comprehensive premium travel package using dynamic form fields.
             </p>
           </div>
-          {submittedData && (
-            <button
-              onClick={() => setSubmittedData(null)}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-meta-4 dark:text-white px-5 py-2.5 rounded-xl font-semibold transition-all text-sm flex items-center gap-2"
-            >
-              Create New Package
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Form / Preview Toggle */}
+            <div className="flex items-center bg-slate-100 dark:bg-boxdark-2 rounded-2xl p-1.5 gap-1 border border-slate-200 dark:border-strokedark">
+              <button
+                onClick={() => setActiveView('form')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  activeView === 'form'
+                    ? 'bg-white dark:bg-boxdark text-slate-900 dark:text-white shadow-md'
+                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                <PencilLine className="w-4 h-4" /> Form
+              </button>
+              <button
+                onClick={() => setActiveView('preview')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  activeView === 'preview'
+                    ? 'bg-white dark:bg-boxdark text-blue-600 shadow-md'
+                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                <Eye className="w-4 h-4" /> Preview
+              </button>
+            </div>
+            {submittedData && (
+              <button
+                onClick={() => setSubmittedData(null)}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-meta-4 dark:text-white px-5 py-2.5 rounded-xl font-semibold transition-all text-sm"
+              >
+                New Package
+              </button>
+            )}
+          </div>
         </div>
 
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+            {/* Preview Panel */}
+            <AnimatePresence mode="wait">
+              {activeView === 'preview' && (
+                <motion.div
+                  key="preview"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <PackagePreview />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-12"
+              style={{ display: activeView === 'form' ? undefined : 'none' }}
+            >
 
               {/* 1. Basic Info */}
               <div className="bg-slate-50 dark:bg-boxdark-2 p-6 lg:p-8 rounded-2xl border border-slate-200 dark:border-strokedark space-y-6">

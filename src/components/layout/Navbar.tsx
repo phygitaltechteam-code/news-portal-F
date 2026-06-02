@@ -8,6 +8,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
+    {name:'Bus Tickets', to: '/bustickets'},
     { name: 'Destinations', to: '/destinations' },
     { name: 'Tours', to: '/tours' },
     { name: 'Add Package', to: '/add-package' },
