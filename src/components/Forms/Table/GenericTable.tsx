@@ -121,41 +121,43 @@ export const GenericTable = <T,>({
     : filteredData.slice(startIdx, startIdx + itemsPerPage);
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-4 pb-2 pt-4 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-6">
+    <div className="rounded-2xl border border-stroke bg-white px-4 pb-3 pt-4 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-6">
       {title && (
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2">
           {showBackButton && onBack && (
             <button
               onClick={onBack}
-              className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
             >
               <FaArrowLeft className="h-5 w-5" />
             </button>
           )}
 
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-lg font-semibold text-black dark:text-white">
+            {title}
+          </h2>
         </div>
       )}
 
       {searchAble && (
-        <div className="mb-3 flex justify-between">
+        <div className="mb-4">
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full rounded border-[1.5px] border-stroke bg-transparent px-3 py-1.5 text-sm outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            className="w-full max-w-[280px] rounded-2xl border-[1.5px] border-stroke  px-3 py-2 text-sm text-black outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
           />
         </div>
       )}
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <tr className="bg-primary/10 text-left dark:bg-meta-4">
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`min-w-[120px] px-3 py-2.5 font-medium text-black dark:text-white ${column.className || ''}`}
+                  className={`min-w-[120px] px-3 py-3 text-sm font-semibold text-primary dark:text-white ${column.className || ''}`}
                   onClick={
                     column.sortable
                       ? () => handleSort(column.accessor as keyof T)
@@ -163,26 +165,33 @@ export const GenericTable = <T,>({
                   }
                   style={{cursor: column.sortable ? 'pointer' : 'default'}}
                 >
-                  <div className="text-sm">
-                    {column.header}{' '}
-                    {sortConfig?.key === column.accessor
-                      ? sortConfig.direction === 'asc'
-                        ? '↑'
-                        : '↓'
-                      : null}
+                  <div className="flex items-center gap-2">
+                    {column.header}
+                    {column.sortable && (
+                      <span className="text-xs text-primary/70">
+                        {sortConfig?.key === column.accessor
+                          ? sortConfig.direction === 'asc'
+                            ? '↑'
+                            : '↓'
+                          : '↕'}
+                      </span>
+                    )}
                   </div>
                 </th>
               ))}
               {action && (
-                <th className="min-w-[100px] px-3 py-2.5">
-                  <div className="text-sm">Action</div>
+                <th className="min-w-[100px] px-3 py-3 text-sm font-semibold text-primary dark:text-white">
+                  Action
                 </th>
               )}
             </tr>
           </thead>
           <tbody>
             {paginatedData.map((item, rowIndex) => (
-              <tr key={rowIndex} className="text-sm">
+              <tr
+                key={rowIndex}
+                className="bg-white text-sm transition hover:bg-primary/5 dark:bg-boxdark dark:hover:bg-meta-4"
+              >
                 {columns.map((column, colIndex) => {
                   const value =
                     typeof column.accessor === 'function'
@@ -192,25 +201,25 @@ export const GenericTable = <T,>({
                   return (
                     <td
                       key={colIndex}
-                      className="border-b border-[#eee] px-3 py-2 dark:border-strokedark"
-                      onClick={() => column.onCellClick?.(item)} // 👈 Trigger click
+                      className="border-b border-stroke px-3 py-3 dark:border-strokedark"
+                      onClick={() => column.onCellClick?.(item)}
                       style={{
                         cursor: column.onCellClick ? 'pointer' : 'default',
-                      }} // 👈 Show pointer
+                      }}
                     >
-                      <div className="py-1.5">
+                      <div className="py-1.5 text-sm text-body dark:text-bodydark">
                         {column.render
                           ? column.render(item, rowIndex)
                           : typeof value === 'string'
                             ? value
                             : JSON.stringify(value)}
                         {column.buttons && (
-                          <div className="mt-1.5 space-x-2">
+                          <div className="mt-2 flex flex-wrap gap-2">
                             {column.buttons.map((button, btnIndex) => (
                               <button
                                 key={btnIndex}
                                 onClick={() => button.onClick(item)}
-                                className={`rounded px-2 py-1 text-xs ${button.className || ''}`}
+                                className={`inline-flex items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary transition hover:bg-primary/20 ${button.className || ''}`}
                               >
                                 {button.icon || button.label}
                               </button>
@@ -222,11 +231,11 @@ export const GenericTable = <T,>({
                   );
                 })}
                 {action && (
-                  <td className="border-b border-[#eee] px-3 py-2 dark:border-strokedark">
-                    <div className="flex items-center space-x-2 py-1.5 sm:block sm:space-x-0 sm:space-y-2">
+                  <td className="border-b border-stroke px-3 py-3 dark:border-strokedark">
+                    <div className="flex flex-wrap items-center gap-2 py-1.5 sm:block sm:space-y-2">
                       {onView && (
                         <button
-                          className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
                           onClick={() => onView(item)}
                         >
                           <FiEye className="h-4 w-4" />
@@ -234,7 +243,7 @@ export const GenericTable = <T,>({
                       )}
                       {handleEdit && (
                         <button
-                          className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
                           onClick={() => handleEdit(item)}
                         >
                           <FiEdit className="h-4 w-4" />
@@ -242,7 +251,7 @@ export const GenericTable = <T,>({
                       )}
                       {handleDelete && (
                         <button
-                          className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
                           onClick={() => handleDelete(item)}
                         >
                           <MdDelete className="h-4 w-4" />
@@ -259,20 +268,20 @@ export const GenericTable = <T,>({
 
       {/* Pagination Controls */}
       {!paginationOff && (
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-sm">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm text-body dark:text-bodydark">
             Page {currentPage} of {totalPages}
           </span>
-          <div className="space-x-2">
+          <div className="flex items-center gap-2">
             <button
-              className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-white"
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
             >
               <GrFormPrevious className="h-4 w-4" />
             </button>
             <button
-              className="hover:bg-gray-100 rounded p-1.5 dark:hover:bg-meta-4"
+              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-white"
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

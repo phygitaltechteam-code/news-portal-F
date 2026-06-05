@@ -172,3 +172,19 @@ export interface GetProcessParams {
 export interface GetDishCategoriesParams {
   languageId?: string;
 }
+
+export interface PickupPoint {
+  name: string;
+  time: string;
+}
+
+export interface RouteCity {
+  cityId: string;
+  cityName: string;
+  pickupPoints: PickupPoint[];
+}
+
+export interface RouteFormData {
+  routeName: string;
+  cities: RouteCity[];
+}

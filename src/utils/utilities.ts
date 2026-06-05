@@ -37,3 +37,26 @@ export const incrementUntilTarget = (start: number, target: number) => {
 
   return resultArray;
 };
+
+
+export const generateFarePairs = (
+  cities: { id: number; name: string }[],
+) => {
+  const pairs = [];
+
+  for (let i = 0; i < cities.length; i++) {
+    for (let j = i + 1; j < cities.length; j++) {
+      pairs.push({
+        fromCityId: cities[i].id,
+        fromCityName: cities[i].name,
+
+        toCityId: cities[j].id,
+        toCityName: cities[j].name,
+
+        price: '',
+      });
+    }
+  }
+
+  return pairs;
+};

@@ -181,7 +181,7 @@ const RouteHistory: React.FC<RouteHistoryProps> = (props) => {
             <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
               Departure Time
             </p>
-            <h2 className="mt-0.5 text-2xl font-bold text-blue-600">
+            <h2 className="mt-0.5 text-2xl font-bold text-red-600">
               {time || 'N/A'}
             </h2>
           </div>

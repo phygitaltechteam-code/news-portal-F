@@ -5,7 +5,7 @@ import GenericButton from '../Forms/Buttons/GenericButton';
 
 type CancelRequestProps = {
     sr?: number;
-  route?: number;
+  route?: string;
   vehicleName: string;
   noPlate: string;
   from: string;
@@ -17,7 +17,7 @@ type CancelRequestProps = {
 
 const sampleData: CancelRequestProps[] = [
   {
-    route: 1,
+    route: 'Route 1',
     vehicleName: 'Bus A',
     noPlate: 'XYZ123',
     from: 'Delhi',
@@ -27,7 +27,7 @@ const sampleData: CancelRequestProps[] = [
     status: 'Pending',
   },
   {
-    route: 2,
+    route: 'Route 2',
     vehicleName: 'Bus B',
     noPlate: 'ABC456',
     from: 'Mumbai',
@@ -37,7 +37,7 @@ const sampleData: CancelRequestProps[] = [
     status: 'Pending',
   },
   {
-    route: 3,
+    route: 'Route 3',
     vehicleName: 'Bus C',
     noPlate: 'DEF789',
     from: 'Bangalore',
@@ -47,7 +47,7 @@ const sampleData: CancelRequestProps[] = [
     status: 'Pending',
   },
   {
-    route: 4,
+    route: 'Route 4',
     vehicleName: 'Bus D',
     noPlate: 'GHI012',
     from: 'Hyderabad',
@@ -57,7 +57,7 @@ const sampleData: CancelRequestProps[] = [
     status: 'Pending',
   },
   {
-    route: 5,
+    route: 'Route 5',
     vehicleName: 'Bus E',
     noPlate: 'JKL345',
     from: 'Chennai',
@@ -99,7 +99,7 @@ const CancelRequest = () => {
   {
     header: 'Vehicle Name',
     accessor: 'vehicleName',
-  },
+  },                        
   {
     header: 'No. of Plate',
     accessor: 'noPlate',

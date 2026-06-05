@@ -5,9 +5,10 @@ import z from 'zod';
 import GenericInputField from '../Forms/Input/GenericInputField';
 import GenericDropdown from '../Forms/DropDown/GenericDropDown';
 import GenericButton from '../Forms/Buttons/GenericButton';
+import { useNavigate } from '@tanstack/react-router';
 
 const routeSchema = z.object({
-  bus: z.string().min(1, 'Select bus'),
+  routname: z.string().min(1, 'Select bus'),
 
   stops: z
     .array(
@@ -22,13 +23,14 @@ const routeSchema = z.object({
 type FormValues = z.infer<typeof routeSchema>;
 
 export const BusRoute = () => {
+  const navigate = useNavigate();
   const [showInput, setShowInput] = React.useState(false);
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(routeSchema),
 
     defaultValues: {
-      bus: '',
+      routname: '',
       stops: [
         {
           place: '',
@@ -51,6 +53,13 @@ export const BusRoute = () => {
   });
 
   const onSubmit = (data: FormValues) => {
+    // call api to save route
+    // navigate({to:'admin/$routeId/citypickuppoint'
+    //   params: {
+    //     routeId:'123'
+    //   }
+
+    // })
     console.log(data);
   };
   return (
@@ -65,11 +74,18 @@ export const BusRoute = () => {
               Create Bus Route
             </h1>
 
-            {/* Bus Dropdown */}
+            {/* Bus Routname */}
             <div className="mb-6">
-              <GenericDropdown
-                name="bus"
-                label="Select Bus"
+              <GenericInputField
+                name="routname"
+                label="Route Name"
+                placeholder="Enter route name"
+              />
+
+
+              {/* <GenericDropdown
+                name="routname"
+                label="Select Route"
                 control={control}
                 options={[
                   {value: 'Bus 101', label: 'Bus 101'},
@@ -77,7 +93,7 @@ export const BusRoute = () => {
                   {value: 'Bus 303', label: 'Bus 303'},
                 ]}
                 required={true}
-              />
+              /> */}
             </div>
 
             {/* Dynamic Stops */}
