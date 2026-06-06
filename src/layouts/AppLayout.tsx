@@ -1,22 +1,47 @@
-import { Outlet } from '@tanstack/react-router';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
+
+import {useAuthContext} from '@/context/AuthContext';
+import {Outlet, useNavigate} from '@tanstack/react-router';
+import React, {useEffect, useState} from 'react';
 
 const AppLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const {isAuthenticated} = useAuthContext();
+
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // if (!isAuthenticated) {
+    //   navigate({ to: '/landing' });
+    //   return;
+    // }
+
+    // if (customer?.role === 'ADMIN') {
+    //   navigate({ to: '/dashboard' });
+    //   return;
+    // }
+
+    // if (customer?.role === 'CUSTOMER') {
+    //   navigate({ to: '/customer/dashboard' });
+    //   return;
+    // }
+  }, [isAuthenticated, navigate]);
+
   return (
-    <div className="dark:bg-boxdark-2 dark:text-bodydark bg-white min-h-screen font-sans">
-      <Navbar />
-      <div className="flex flex-col min-h-screen">
-        {/* Main content */}
-        <div className="relative flex flex-1 flex-col">
+    <div className="dark:bg-boxdark-2 dark:text-bodydark ">
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           <main>
-            <div className="mx-auto">
+            <div className="mx-auto  p-2 md:p-6 2xl:p-10">
               <Outlet />
             </div>
           </main>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
