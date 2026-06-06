@@ -1,234 +1,251 @@
-import {motion} from 'framer-motion';
-import {createFileRoute, Link} from '@tanstack/react-router';
-import {useForm, FormProvider, Controller} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
+// D:\NewsPortal\news-portal-F\src\pages\LandingPage.tsx
 
-import {
-  Search,
-  MapPin,
-  Calendar,
-  Users,
-  Star,
-  ChevronRight,
-  Globe,
-  ShieldCheck,
-  HeadphonesIcon,
-  ArrowRight,
-} from 'lucide-react';
-import Newsletter from '@/components/sections/Newsletter';
-import GenericInputField from '@/components/Forms/Input/GenericInputField';
-import BusSearch from '@/components/customer/BusSearch';
+import { motion } from 'framer-motion';
+import { Link } from '@tanstack/react-router';
+import { Calendar, Clock, Eye, Share2, Bookmark, ChevronRight } from 'lucide-react';
+
+interface NewsArticle {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  date: string;
+  time: string;
+  category: string;
+  readTime: string;
+  views: number;
+}
 
 function LandingPage() {
-  const destinations = [
+  // Static news data
+  const featuredNews: NewsArticle[] = [
     {
       id: 1,
-      name: 'Bali, Indonesia',
-      price: '$850',
-      rating: 4.9,
-      category: 'Tropical',
+      title: "Breaking: Major Technological Breakthrough in AI Research",
+      description: "Scientists have achieved a significant milestone in artificial intelligence, developing a new model that can understand context better than ever before. This breakthrough could revolutionize how we interact with technology.",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format",
+      date: "2024-03-15",
+      time: "10:30 AM",
+      category: "Technology",
+      readTime: "5 min read",
+      views: 12450
     },
     {
       id: 2,
-      name: 'Santorini, Greece',
-      price: '$1,200',
-      rating: 4.8,
-      category: 'Coastal',
+      title: "Global Climate Summit Reaches Historic Agreement",
+      description: "World leaders have come together to sign an unprecedented climate accord, committing to reduce carbon emissions by 50% by 2030. Environmental experts call it a turning point in the fight against climate change.",
+      image: "https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=800&auto=format",
+      date: "2024-03-14",
+      time: "02:15 PM",
+      category: "Environment",
+      readTime: "4 min read",
+      views: 8920
     },
     {
       id: 3,
-      name: 'Swiss Alps, Switzerland',
-      price: '$1,500',
-      rating: 5.0,
-      category: 'Mountain',
+      title: "Stock Markets Hit All-Time High Amid Economic Recovery",
+      description: "Global markets have surged to record levels as investor confidence grows following positive economic indicators. Analysts predict continued growth through the next quarter.",
+      image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format",
+      date: "2024-03-14",
+      time: "04:45 PM",
+      category: "Business",
+      readTime: "3 min read",
+      views: 15670
     },
     {
       id: 4,
-      name: 'Kyoto, Japan',
-      price: '$950',
-      rating: 4.7,
-      category: 'Cultural',
-    },
-  ];
-
-  const features = [
-    {
-      icon: <Globe className="h-6 w-6 text-orange-500" />,
-      title: 'Global Reach',
-      description: 'Explore over 500+ destinations across the globe with ease.',
+      title: "Revolutionary Electric Vehicle Battery Announced",
+      description: "A new battery technology promises 1000km range on a single charge, potentially eliminating range anxiety for EV owners. The breakthrough could accelerate the transition to electric vehicles.",
+      image: "https://images.unsplash.com/photo-1593941707882-5a14953fb80c?w=800&auto=format",
+      date: "2024-03-13",
+      time: "11:20 AM",
+      category: "Technology",
+      readTime: "6 min read",
+      views: 11230
     },
     {
-      icon: <ShieldCheck className="h-6 w-6 text-orange-500" />,
-      title: 'Secure Booking',
-      description:
-        'Your safety and security are our top priorities with encrypted payments.',
+      id: 5,
+      title: "Healthcare Innovation: New Treatment Shows Promise",
+      description: "A groundbreaking medical study reveals promising results for a new treatment approach that could change how we treat chronic diseases. Patient trials have shown remarkable outcomes.",
+      image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format",
+      date: "2024-03-13",
+      time: "09:00 AM",
+      category: "Health",
+      readTime: "7 min read",
+      views: 7430
     },
     {
-      icon: <HeadphonesIcon className="h-6 w-6 text-orange-500" />,
-      title: '24/7 Support',
-      description:
-        'Our travel experts are always available to help you on your journey.',
+      id: 6,
+      title: "Space Exploration: New Exoplanet Discovered",
+      description: "Astronomers have discovered a potentially habitable exoplanet just 100 light-years away. The planet shows signs of having liquid water and a stable atmosphere.",
+      image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format",
+      date: "2024-03-12",
+      time: "08:30 PM",
+      category: "Science",
+      readTime: "4 min read",
+      views: 6340
     },
+    {
+      id: 7,
+      title: "Champions League: Historic Comeback Stuns Fans Worldwide",
+      description: "In an unprecedented turn of events, underdogs secure victory against reigning champions in a thrilling match that will go down in football history.",
+      image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&auto=format",
+      date: "2024-03-12",
+      time: "11:45 PM",
+      category: "Sports",
+      readTime: "6 min read",
+      views: 28940
+    },
+    {
+      id: 8,
+      title: "New Breakthrough in Quantum Computing Announced",
+      description: "Tech giant reveals quantum processor that could solve complex problems in seconds that would take traditional computers thousands of years.",
+      image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format",
+      date: "2024-03-11",
+      time: "03:20 PM",
+      category: "Technology",
+      readTime: "8 min read",
+      views: 15670
+    },
+    {
+      id: 9,
+      title: "Entertainment: Major Streaming Platform Announces Price Hike",
+      description: "Popular streaming service increases subscription prices citing rising content production costs, sparking debate among users about value for money.",
+      image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&auto=format",
+      date: "2024-03-11",
+      time: "01:15 PM",
+      category: "Entertainment",
+      readTime: "3 min read",
+      views: 9820
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20 font-sans text-slate-900">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pb-20 pt-32 lg:pb-32 lg:pt-48">
-        {/* Background Accents */}
-        <div className="absolute right-0 top-0 -z-10 h-[600px] w-[600px] -translate-y-1/4 translate-x-1/4 rounded-full bg-orange-100 opacity-50 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -z-10 h-[400px] w-[400px] -translate-x-1/4 translate-y-1/4 rounded-full bg-red-100 opacity-50 blur-3xl" />
-
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <motion.div
-            initial={{opacity: 0, y: 20}}
-            animate={{opacity: 1, y: 0}}
-            transition={{duration: 0.6}}
-          >
-            <span className="mb-6 inline-block rounded-full bg-orange-50 px-4 py-1.5 text-sm font-bold uppercase tracking-wider text-orange-600">
-              Discover the World
-            </span>
-            <h1 className="mb-8 text-5xl font-extrabold leading-[1.1] text-slate-900 lg:text-7xl">
-              Explore the World, One <br />
-              <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Adventure
-              </span>{' '}
-              at a Time
-            </h1>
-            <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-slate-600 lg:text-xl">
-              Discover hidden gems, luxury stays, and unforgettable experiences
-              curated just for you. Your next journey starts here.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-      {/* <div  className="w-500 h-20 bg-white flex mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 rounded-3xl border border-slate-100 shadow-sm"> */}
-      {/* Search bus */}
-
-      <BusSearch />
-      {/* </div> */}
-      {/* Popular Destinations */}
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 flex flex-col items-end justify-between gap-6 md:flex-row">
-            <div>
-              <h2 className="mb-4 text-3xl font-bold text-slate-900 lg:text-4xl">
-                Popular Destinations
-              </h2>
-              <p className="max-w-xl text-slate-500">
-                From tropical paradises to mountain escapes, find the perfect
-                spot for your next holiday.
-              </p>
-            </div>
-            <button className="group flex items-center gap-2 font-bold text-orange-600">
-              View All Destinations
-              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {destinations.map((dest, i) => (
-              <motion.div
-                key={dest.id}
-                initial={{opacity: 0, y: 20}}
-                whileInView={{opacity: 1, y: 0}}
-                viewport={{once: true}}
-                transition={{delay: i * 0.1}}
-                className="group cursor-pointer"
-              >
-                <Link
-                  to="/package/$id"
-                  params={{id: dest.id.toString()}}
-                  className="block"
-                >
-                  <div className="relative mb-4 aspect-[4/5] overflow-hidden rounded-3xl bg-slate-200 shadow-md transition-all group-hover:shadow-xl">
-                    {/* Image Placeholder */}
-                    <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 to-transparent" />
-                    <img
-                      src={`https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop&sig=${dest.id}`}
-                      alt={dest.name}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-
-                    <div className="absolute right-4 top-4 z-20 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 shadow-sm backdrop-blur-sm">
-                      <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                      <span className="text-xs font-bold text-slate-900">
-                        {dest.rating}
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-6 left-6 z-20 text-white">
-                      <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
-                        {dest.category}
-                      </span>
-                      <h3 className="mt-1 text-xl font-bold transition-transform group-hover:translate-x-1">
-                        {dest.name}
-                      </h3>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between px-1">
-                    <div>
-                      <p className="text-sm font-medium text-slate-400">
-                        Starting from
-                      </p>
-                      <p className="text-lg font-bold text-slate-900">
-                        {dest.price}
-                        <span className="text-sm font-normal text-slate-400">
-                          /person
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-orange-600 group-hover:bg-orange-600">
-                      <ArrowRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-white" />
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="relative overflow-hidden bg-slate-50 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-slate-900 lg:text-4xl">
-              Why Choose Travelex?
-            </h2>
-            <p className="mx-auto max-w-2xl text-slate-500">
-              We provide the best travel experiences with premium services and
-              dedicated support.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-            {features.map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{opacity: 0, y: 20}}
-                whileInView={{opacity: 1, y: 0}}
-                viewport={{once: true}}
-                transition={{delay: i * 0.2}}
-                className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
-                  {feature.icon}
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* News Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {featuredNews.map((news, index) => (
+            <motion.article
+              key={news.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+            >
+              {/* Image Section */}
+              <div className="relative h-56 overflow-hidden bg-gray-200">
+                <img
+                  src={news.image}
+                  alt={news.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format';
+                  }}
+                />
+                {/* Category Badge */}
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg shadow-md">
+                    {news.category}
+                  </span>
                 </div>
-                <h3 className="mb-3 text-xl font-bold text-slate-900">
-                  {feature.title}
-                </h3>
-                <p className="leading-relaxed text-slate-500">
-                  {feature.description}
+                {/* Bookmark Button */}
+                <button className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-white">
+                  <Bookmark className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Content Section */}
+              <div className="p-6">
+                {/* Title */}
+                <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-primary transition-colors">
+                  {news.title}
+                </h2>
+
+                {/* Description */}
+                <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+                  {news.description}
                 </p>
-              </motion.div>
-            ))}
+
+                {/* Date, Time & Metadata */}
+                <div className="flex flex-wrap items-center justify-between pt-4 border-t border-gray-100 gap-3">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      <span>{news.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4" />
+                      <span>{news.time}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Read Time */}
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                      {news.readTime}
+                    </span>
+                    
+                    {/* Views */}
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>{news.views.toLocaleString()}</span>
+                    </div>
+
+                    {/* Share Button */}
+                    <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
+                      <Share2 className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Read More Link */}
+                <Link
+                  to="/news/$id"
+                  params={{ id: news.id.toString() }}
+                  className="mt-4 text-primary font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all duration-300 inline-flex"
+                >
+                  Read More 
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+
+        {/* Load More Button */}
+        <div className="flex justify-center mt-12">
+          <button className="px-8 py-3.5 bg-primary text-white rounded-full font-semibold hover:bg-primary-dark transition-all duration-300 hover:scale-105 transform shadow-md hover:shadow-xl">
+            Load More News
+          </button>
+        </div>
+      </div>
+
+      {/* Newsletter Section */}
+      <section className="py-16 px-4 bg-gray-100">
+        <div className="max-w-7xl mx-auto bg-gradient-to-r from-primary to-primary-dark rounded-3xl px-8 py-16 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+          <div className="relative z-10 max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Subscribe to Our Newsletter</h2>
+            <p className="text-primary-100 text-lg mb-8">Get the latest news and updates delivered directly to your inbox</p>
+            
+            <form className="flex flex-col sm:flex-row gap-3 p-2 bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-full">
+              <input 
+                type="email" 
+                placeholder="Enter your email address" 
+                className="flex-1 bg-transparent px-6 py-4 outline-none text-white placeholder:text-primary-200 font-medium"
+                required
+              />
+              <button type="submit" className="bg-white text-primary px-8 py-4 rounded-xl sm:rounded-full font-bold hover:bg-gray-100 transition-all duration-300 active:scale-95">
+                Subscribe Now
+              </button>
+            </form>
+            <p className="text-primary-200 text-sm mt-4">We respect your privacy. Unsubscribe at any time.</p>
           </div>
         </div>
       </section>
-
-      <Newsletter />
     </div>
   );
 }

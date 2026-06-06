@@ -1,117 +1,121 @@
+// D:\NewsPortal\news-portal-F\src\pages\ContactUs.tsx
+
 import { createFileRoute } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Star, Users, MapPin, ChevronRight } from 'lucide-react';
-import Newsletter from '../../components/sections/Newsletter';
+import { MapPin, Mail, Phone, Send, MessageSquare, User, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import Newsletter from '@/components/sections/Newsletter';
 
 export const Route = createFileRoute('/_app/tours')({
-  component: ToursPage,
+  component: ContactUsPage,
 });
 
-function ToursPage() {
-  const tours = [
-    { 
-      id: 1, 
-      title: 'Bali Cultural Discovery', 
-      duration: '7 Days', 
-      groupSize: 'Max 12', 
-      price: '$1,250', 
-      rating: 4.9, 
-      location: 'Bali, Indonesia' 
+function ContactUsPage() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      console.log('Form submitted:', formData);
+      setSubmitStatus({
+        type: 'success',
+        message: 'Thank you for reaching out! We will get back to you soon.',
+      });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setIsSubmitting(false);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSubmitStatus(null), 5000);
+    }, 1500);
+  };
+
+  const contactInfo = [
+    {
+      icon: MapPin,
+      title: 'Visit Us',
+      details: ['123 News Street', 'Media City, NY 10001', 'United States'],
+      color: 'primary',
     },
-    { 
-      id: 2, 
-      title: 'Santorini Sunset Experience', 
-      duration: '4 Days', 
-      groupSize: 'Max 8', 
-      price: '$890', 
-      rating: 4.8, 
-      location: 'Santorini, Greece' 
+    {
+      icon: Mail,
+      title: 'Email Us',
+      details: ['info@newsportal.com', 'support@newsportal.com'],
+      color: 'secondary',
     },
-    { 
-      id: 3, 
-      title: 'Alpine Hiking Adventure', 
-      duration: '10 Days', 
-      groupSize: 'Max 15', 
-      price: '$2,100', 
-      rating: 5.0, 
-      location: 'Swiss Alps' 
+    {
+      icon: Phone,
+      title: 'Call Us',
+      details: ['+1 (123) 456-7890', '+1 (123) 456-7891'],
+      color: 'primary',
     },
-    { 
-      id: 4, 
-      title: 'Kyoto Temple Trail', 
-      duration: '6 Days', 
-      groupSize: 'Max 10', 
-      price: '$1,150', 
-      rating: 4.7, 
-      location: 'Kyoto, Japan' 
-    }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pt-20">
-
-      <section className="pt-32 pb-20 bg-blue-600 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6">Unforgettable Tours</h1>
-          <p className="text-blue-100 text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed">
-            Experience the world like never before with our expertly guided tours designed for immersive discovery.
-          </p>
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary to-primary-dark text-white py-20 lg:py-24">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold mb-6">
+              Get in Touch
+            </span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              Contact Us
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+              Have a question, story tip, or just want to say hello? We'd love to hear from you!
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      <section className="py-24">
+      {/* Contact Info Cards */}
+      <section className="py-16 -mt-10 relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-12">
-            {tours.map((tour, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {contactInfo.map((info, index) => (
               <motion.div
-                key={tour.id}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                key={info.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-white rounded-[40px] overflow-hidden flex flex-col lg:flex-row shadow-xl shadow-slate-100 border border-slate-50 group"
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 group"
               >
-                <div className="lg:w-2/5 relative bg-slate-200 aspect-video lg:aspect-auto">
-                   {/* Placeholder */}
-                  <div className="absolute inset-0 flex items-center justify-center text-slate-400 opacity-20">
-                    <MapPin className="w-20 h-20" />
-                  </div>
-                  <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span className="font-bold text-slate-900">{tour.rating}</span>
-                  </div>
+                <div className={`inline-flex items-center justify-center w-12 h-12 bg-${info.color === 'primary' ? 'primary-100' : 'secondary-100'} rounded-xl mb-4 group-hover:bg-${info.color === 'primary' ? 'primary' : 'secondary'} transition-colors duration-300`}>
+                  <info.icon className={`w-6 h-6 text-${info.color === 'primary' ? 'primary' : 'secondary'} group-hover:text-white transition-colors duration-300`} />
                 </div>
-
-                <div className="lg:w-3/5 p-8 lg:p-12 flex flex-col justify-center">
-                  <div className="flex flex-wrap items-center gap-4 mb-6">
-                    <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full text-sm font-bold">
-                      <Clock className="w-4 h-4" />
-                      {tour.duration}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-slate-500 bg-slate-100 px-4 py-1.5 rounded-full text-sm font-bold">
-                      <Users className="w-4 h-4" />
-                      {tour.groupSize}
-                    </span>
-                  </div>
-
-                  <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">{tour.title}</h2>
-                  <div className="flex items-center gap-2 text-slate-500 mb-8 font-medium">
-                    <MapPin className="w-5 h-5 text-blue-500" />
-                    {tour.location}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-100">
-                    <div>
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Price per person</p>
-                      <p className="text-3xl font-bold text-slate-900">{tour.price}</p>
-                    </div>
-                    <button className="w-full sm:w-auto bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group/btn">
-                      Book This Tour
-                      <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">{info.title}</h3>
+                <div className="space-y-1">
+                  {info.details.map((detail, i) => (
+                    <p key={i} className="text-gray-600 text-sm">{detail}</p>
+                  ))}
                 </div>
               </motion.div>
             ))}
@@ -119,7 +123,182 @@ function ToursPage() {
         </div>
       </section>
 
-      <Newsletter />
+      {/* Map and Form Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Contact Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="mb-8">
+                <span className="text-primary font-semibold text-sm uppercase tracking-wider">Send a Message</span>
+                <h2 className="text-3xl font-bold text-gray-900 mt-2">We'd Love to Hear From You</h2>
+                <p className="text-gray-600 mt-4">
+                  Whether you have a question, feedback, or a story tip, our team is here to help.
+                </p>
+              </div>
+
+              {submitStatus && (
+                <div className={`mb-6 p-4 rounded-lg ${
+                  submitStatus.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    <p>{submitStatus.message}</p>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Your Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Subject *
+                  </label>
+                  <select
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white"
+                  >
+                    <option value="">Select a subject</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Story Tip">Story Tip</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Advertisement">Advertisement</option>
+                    <option value="Careers">Careers</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Message *
+                  </label>
+                  <div className="relative">
+                    <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows={5}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                      placeholder="Tell us how we can help..."
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary text-white py-4 rounded-xl font-semibold hover:bg-primary-dark transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-200"
+                >
+                  {isSubmitting ? (
+                    'Sending...'
+                  ) : (
+                    <>
+                      Send Message
+                      <Send className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+
+            {/* Map Location */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-gray-100 rounded-2xl overflow-hidden shadow-lg h-full">
+                <div className="p-6 bg-primary text-white">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <MapPin className="w-6 h-6" />
+                    Find Us Here
+                  </h3>
+                  <p className="text-primary-100 mt-2">123 News Street, Media City, NY 10001</p>
+                </div>
+                <div className="h-96 w-full">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.2219901290355!2d-74.00369368400567!3d40.71312937933027!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a316bb2c2b1%3A0x6b3d4b9b4b9b4b9b!2sNew%20York%2C%20NY!5e0!3m2!1sen!2sus!4v1641234567890!5m2!1sen!2sus"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    title="NewsPortal Location"
+                  ></iframe>
+                </div>
+                <div className="p-6 bg-white">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Getting Here</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Take subway lines A, C, or E to the News Station. We're a 5-minute walk from the station.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Parking Available</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Paid parking is available at the adjacent parking garage.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
