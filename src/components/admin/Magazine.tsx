@@ -25,6 +25,9 @@ import {
   MdChevronLeft,
   MdChevronRight,
 } from 'react-icons/md';
+import { useSubmitMagzine } from '@/lib/magzine/magzine';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 // Magazine schema
 const magazineSchema = z.object({
@@ -57,7 +60,7 @@ const categories = [
   { id: 'art', name: 'Art & Design', color: 'bg-meta-5/10 text-meta-5', icon: '🎨' },
 ];
 
-// Mock magazines data
+// Mock magazines data (fallback when API fails)
 const mockMagazines = [
   {
     id: '1',
@@ -126,7 +129,11 @@ const Magazine = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showPreview, setShowPreview] = useState(false);
   const [magazines, setMagazines] = useState(mockMagazines);
+  const [isLoading, setIsLoading] = useState(false);
   
+  const queryClient = useQueryClient();
+  const { mutateAsync: submitMagazine, isPending } = useSubmitMagzine();
+
   const itemsPerPage = 6;
 
   const {
@@ -156,26 +163,55 @@ const Magazine = () => {
   const selectedTypeValue = watch('type');
 
   const onSubmit = async (data: MagazineFormData) => {
-    console.log('Magazine Data:', data);
-    
-    const newMagazine = {
-      id: editingMagazine?.id || Date.now().toString(),
-      ...data,
-      views: editingMagazine?.views || 0,
-      downloads: editingMagazine?.downloads || 0,
-      publishDate: data.publishDate || new Date().toISOString().split('T')[0],
-    };
-    
-    if (editingMagazine) {
-      setMagazines(magazines.map(m => m.id === editingMagazine.id ? newMagazine : m));
-    } else {
-      setMagazines([newMagazine, ...magazines]);
+    try {
+      setIsLoading(true);
+      
+      const payload = {
+        id: editingMagazine?.id,
+        ...data,
+        publishDate: data.publishDate || new Date().toISOString().split('T')[0],
+      };
+      
+      console.log('Submitting Magazine Data:', payload);
+      
+      const response = await submitMagazine(payload);
+      
+      console.log('API Response:', response);
+      
+      if (response?.data?.success || response?.status === 200 || response?.status === 201) {
+        toast.success(editingMagazine ? 'Magazine updated successfully!' : 'Magazine created successfully!');
+        
+        // Invalidate and refetch magazines query
+        queryClient.invalidateQueries({ queryKey: ['magazines'] });
+        
+        // Add new magazine to local state
+        const newMagazine = {
+          id: editingMagazine?.id || Date.now().toString(),
+          ...data,
+          views: editingMagazine?.views || 0,
+          downloads: editingMagazine?.downloads || 0,
+          publishDate: data.publishDate || new Date().toISOString().split('T')[0],
+        };
+        
+        if (editingMagazine) {
+          setMagazines(magazines.map(m => m.id === editingMagazine.id ? newMagazine : m));
+        } else {
+          setMagazines([newMagazine, ...magazines]);
+        }
+        
+        reset();
+        setEditingMagazine(null);
+        setShowForm(false);
+        setShowPreview(false);
+      } else {
+        toast.error(response?.data?.message || 'Failed to save magazine');
+      }
+    } catch (error: any) {
+      console.error('Error saving magazine:', error);
+      toast.error(error?.response?.data?.message || 'An error occurred while saving the magazine');
+    } finally {
+      setIsLoading(false);
     }
-    
-    reset();
-    setEditingMagazine(null);
-    setShowForm(false);
-    setShowPreview(false);
   };
 
   const handleEdit = (magazine: any) => {
@@ -192,9 +228,18 @@ const Magazine = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this magazine?')) {
-      setMagazines(magazines.filter(m => m.id !== id));
+      try {
+        // Add delete API call here when available
+        // await deleteMagazine(id);
+        setMagazines(magazines.filter(m => m.id !== id));
+        toast.success('Magazine deleted successfully!');
+        queryClient.invalidateQueries({ queryKey: ['magazines'] });
+      } catch (error) {
+        console.error('Error deleting magazine:', error);
+        toast.error('Failed to delete magazine');
+      }
     }
   };
 
@@ -450,11 +495,11 @@ const Magazine = () => {
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary/90"
+                      disabled={isSubmitting || isPending || isLoading}
+                      className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary/90 disabled:opacity-50"
                     >
                       <MdSave size={18} />
-                      {isSubmitting ? 'Saving...' : editingMagazine ? 'Update Magazine' : 'Publish Magazine'}
+                      {isSubmitting || isPending || isLoading ? 'Saving...' : editingMagazine ? 'Update Magazine' : 'Publish Magazine'}
                     </button>
                     <button
                       type="button"
@@ -568,6 +613,9 @@ const Magazine = () => {
                         src={magazine.coverImage}
                         alt={magazine.name}
                         className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=Image+Not+Found';
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">

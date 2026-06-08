@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
 import { Calendar, Clock, Eye, Share2, Bookmark, ChevronRight } from 'lucide-react';
+import { useGetNewsById, useGetNewsInfo } from '@/lib/Auth/news/newsall';
 
 interface NewsArticle {
   id: number;
@@ -17,6 +18,8 @@ interface NewsArticle {
 }
 
 function LandingPage() {
+  const getnews=useGetNewsInfo();
+  const getnewsbyid=useGetNewsById('');
   // Static news data
   const featuredNews: NewsArticle[] = [
     {

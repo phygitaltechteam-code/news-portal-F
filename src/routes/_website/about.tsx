@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Download, Eye, Calendar, FileText } from 'lucide-react';
 import { useState } from 'react';
 import Newsletter from '@/components/sections/Newsletter';
+import { useGetMagzine } from '@/lib/magzine/magzine';
 
 export const Route = createFileRoute('/_website/about')({
   component: MagazinePage,
@@ -13,7 +14,7 @@ export const Route = createFileRoute('/_website/about')({
 function MagazinePage() {
   const [selectedMagazine, setSelectedMagazine] = useState<any>(null);
   const [isPdfOpen, setIsPdfOpen] = useState(false);
-
+  const getmagzine=useGetMagzine();
   const magazines = [
     {
       id: 1,
