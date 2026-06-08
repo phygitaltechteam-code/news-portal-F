@@ -26,7 +26,7 @@ const Sidebar = ({sidebarOpen, setSidebarOpen}: SidebarProps) => {
           },
           {
             label: 'News Management',
-            icon: <MdNewspaper size={18} />,
+            icon: <MdNewspaper size={18}/>,
             path: '/admin/news',
             subRoutes: [
               {label: 'Create News', path: '/admin/news/create'},
@@ -40,8 +40,13 @@ const Sidebar = ({sidebarOpen, setSidebarOpen}: SidebarProps) => {
             path: '/admin/category',
             subRoutes: [
               {label: 'Create Category', path: '/admin/category/create'},
-              {label: 'Category List', path: '/admin/category/list'},
+              // {label: 'Category List', path: '/admin/category/list'},
             ],
+          },
+                    {
+            label: 'Magazine',
+            path: '/admin/magazine',
+            icon: <PiSquaresFourLight size={18} />,
           },
         ]
       : [];

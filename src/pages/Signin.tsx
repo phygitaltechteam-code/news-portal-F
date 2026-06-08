@@ -55,10 +55,10 @@ const SignIn: React.FC = () => {
       const role = decoded.role;
 
       if (role === 'ADMIN') {
-        window.location.href = '/dashboard';
+        window.location.href = '/admin/dashboard';
       }
       if (role === 'CUSTOMER') {
-        window.location.href = '/customer/dashboard';
+        window.location.href = '/';
       }
     } catch {
       // error shown via isError
@@ -69,9 +69,8 @@ const SignIn: React.FC = () => {
     <div className="relative flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="mx-auto w-full max-w-md px-4 py-8">
         <div
-          className={`w-full transform transition-all duration-700 ${
-            mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-          }`}
+          className={`w-full transform transition-all duration-700 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+            }`}
         >
           {/* Logo and Header */}
           <div className="mb-8 text-center">
@@ -99,11 +98,10 @@ const SignIn: React.FC = () => {
                     type="text"
                     placeholder="Enter your phone number"
                     {...register('phoneNumber')}
-                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${
-                      errors.phoneNumber
+                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${errors.phoneNumber
                         ? 'border-red-300 focus:border-red-500 focus:bg-white'
                         : 'border-slate-200 focus:border-blue-500 focus:bg-white'
-                    }`}
+                      }`}
                   />
                 </div>
                 {errors.phoneNumber && (
@@ -123,11 +121,10 @@ const SignIn: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     {...register('password')}
-                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${
-                      errors.password
+                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${errors.password
                         ? 'border-red-300 focus:border-red-500 focus:bg-white'
                         : 'border-slate-200 focus:border-blue-500 focus:bg-white'
-                    } pr-12`}
+                      } pr-12`}
                   />
                   <button
                     type="button"

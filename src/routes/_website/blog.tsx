@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, User, ArrowRight, BookOpen } from 'lucide-react';
 import Newsletter from '../../components/sections/Newsletter';
 
-export const Route = createFileRoute('/_app/blog')({
+export const Route = createFileRoute('/_website/blog')({
   component: BlogPage,
 });
 

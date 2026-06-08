@@ -6,7 +6,7 @@ import { MapPin, Mail, Phone, Send, MessageSquare, User, AlertCircle } from 'luc
 import { useState } from 'react';
 import Newsletter from '@/components/sections/Newsletter';
 
-export const Route = createFileRoute('/_app/tours')({
+export const Route = createFileRoute('/_website/tours')({
   component: ContactUsPage,
 });
 

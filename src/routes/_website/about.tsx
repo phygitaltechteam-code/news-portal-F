@@ -6,7 +6,7 @@ import { Download, Eye, Calendar, FileText } from 'lucide-react';
 import { useState } from 'react';
 import Newsletter from '@/components/sections/Newsletter';
 
-export const Route = createFileRoute('/_app/about')({
+export const Route = createFileRoute('/_website/about')({
   component: MagazinePage,
 });
 

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Newspaper, Users, Globe, Award, Heart, Clock, Shield, Zap, ChevronRight } from 'lucide-react';
 import Newsletter from '@/components/sections/Newsletter';
 
-export const Route = createFileRoute('/_app/destinations')({
+export const Route = createFileRoute('/_website/destinations')({
   component: AboutUsPage,
 });
 
