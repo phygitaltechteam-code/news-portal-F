@@ -27,7 +27,7 @@ const SignIn: React.FC = () => {
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      phoneNumber: '',
+      username: '', // Changed from 'username' to 'username'
       password: '',
     },
   });
@@ -43,7 +43,7 @@ const SignIn: React.FC = () => {
   const onSubmit = async (values: SignInFormValues) => {
     try {
       const res = await signIn({
-        phoneNumber: values.phoneNumber,
+        username: values.username, // Changed from 'username' to 'username'
         password: values.password,
       });
 
@@ -66,54 +66,56 @@ const SignIn: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-whiten font-satoshi">
       <div className="mx-auto w-full max-w-md px-4 py-8">
         <div
-          className={`w-full transform transition-all duration-700 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            }`}
+          className={`w-full transform transition-all duration-700 ${
+            mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+          }`}
         >
           {/* Logo and Header */}
           <div className="mb-8 text-center">
-            <div className="relative mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200">
+            <div className="relative mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/20">
               <Newspaper className="h-8 w-8 text-white" />
             </div>
-            <h2 className="mb-2 text-3xl font-bold tracking-tight text-slate-900">
+            <h2 className="mb-2 text-title-xl2 font-bold tracking-tight text-black">
               Sign In
             </h2>
-            <p className="text-sm font-medium text-slate-500">
+            <p className="text-sm font-medium text-body">
               Sign in to your account
             </p>
           </div>
 
           {/* Main Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-100 md:p-8">
+          <div className="rounded-2xl border border-stroke bg-white p-6 shadow-card md:p-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Phone Number */}
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <label className="flex items-center gap-2 text-sm font-medium text-black">
                   Phone Number
                 </label>
                 <div className="group/input relative">
                   <input
                     type="text"
                     placeholder="Enter your phone number"
-                    {...register('phoneNumber')}
-                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${errors.phoneNumber
-                        ? 'border-red-300 focus:border-red-500 focus:bg-white'
-                        : 'border-slate-200 focus:border-blue-500 focus:bg-white'
-                      }`}
+                    {...register('username')}
+                    className={`w-full rounded-lg border bg-gray px-4 py-3 text-black placeholder-body outline-none transition-all duration-200 ${
+                      errors.username
+                        ? 'border-meta-1 focus:border-meta-1 focus:bg-white'
+                        : 'border-stroke focus:border-primary focus:bg-white'
+                    }`}
                   />
                 </div>
-                {errors.phoneNumber && (
-                  <p className="text-xs font-medium text-red-500">
-                    {errors.phoneNumber.message}
+                {errors.username && (
+                  <p className="text-xs font-medium text-meta-1">
+                    {errors.username.message}
                   </p>
                 )}
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <label className="flex items-center gap-2 text-sm font-medium text-black">
                   Password
                 </label>
                 <div className="group/input relative">
@@ -121,15 +123,16 @@ const SignIn: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     {...register('password')}
-                    className={`w-full rounded-lg border bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 ${errors.password
-                        ? 'border-red-300 focus:border-red-500 focus:bg-white'
-                        : 'border-slate-200 focus:border-blue-500 focus:bg-white'
-                      } pr-12`}
+                    className={`w-full rounded-lg border bg-gray px-4 py-3 text-black placeholder-body outline-none transition-all duration-200 ${
+                      errors.password
+                        ? 'border-meta-1 focus:border-meta-1 focus:bg-white'
+                        : 'border-stroke focus:border-primary focus:bg-white'
+                    } pr-12`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-700"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-body transition-colors duration-200 hover:text-black"
                   >
                     {showPassword ? (
                       <LuEyeOff size={18} />
@@ -139,7 +142,7 @@ const SignIn: React.FC = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs font-medium text-red-500">
+                  <p className="text-xs font-medium text-meta-1">
                     {errors.password.message}
                   </p>
                 )}
@@ -151,15 +154,15 @@ const SignIn: React.FC = () => {
                   <input
                     type="checkbox"
                     id="remember"
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-stroke text-primary focus:ring-primary"
                   />
-                  <label htmlFor="remember" className="text-sm text-slate-600">
+                  <label htmlFor="remember" className="text-sm text-body">
                     Remember me
                   </label>
                 </div>
                 <Link
                   to="/forgot-password"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                  className="text-sm font-medium text-primary hover:text-primary/80"
                 >
                   Forgot password?
                 </Link>
@@ -167,8 +170,8 @@ const SignIn: React.FC = () => {
 
               {/* Error Message */}
               {isError && (
-                <div className="rounded-lg border border-red-100 bg-red-50/50 p-3">
-                  <p className="text-center text-sm font-medium text-red-600">
+                <div className="rounded-lg border border-meta-1/20 bg-meta-1/5 p-3">
+                  <p className="text-center text-sm font-medium text-meta-1">
                     Invalid phone number or password. Please try again.
                   </p>
                 </div>
@@ -178,7 +181,7 @@ const SignIn: React.FC = () => {
               <button
                 type="submit"
                 disabled={isPending || isSubmitting}
-                className="relative w-full transform overflow-hidden rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm shadow-blue-200 transition-all duration-200 hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                className="relative w-full transform overflow-hidden rounded-lg bg-primary px-6 py-3 font-semibold text-white shadow-default transition-all duration-200 hover:bg-primary/90 hover:shadow-4 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="flex items-center justify-center gap-2">
                   {isPending || isSubmitting ? (
@@ -215,11 +218,11 @@ const SignIn: React.FC = () => {
               </button>
 
               {/* Sign Up Link */}
-              <p className="mt-6 text-center text-sm text-slate-600">
+              <p className="mt-6 text-center text-sm text-body">
                 Don't have an account?{' '}
                 <Link
                   to="/signup"
-                  className="font-semibold text-blue-600 hover:text-blue-700"
+                  className="font-semibold text-primary hover:text-primary/80"
                 >
                   Sign up
                 </Link>
@@ -228,7 +231,7 @@ const SignIn: React.FC = () => {
           </div>
 
           {/* Footer */}
-          <p className="mt-8 text-center text-xs text-slate-400">
+          <p className="mt-8 text-center text-xs text-body">
             © 2026 NewsPortal. All rights reserved.
           </p>
         </div>

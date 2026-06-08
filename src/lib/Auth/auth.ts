@@ -4,8 +4,8 @@ import { api } from "@/utils/axios";
 import z from "zod";
 
 export const signInSchema = z.object({
-  phoneNumber: z.string().min(10),
-  password: z.string().min(6),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const useAdminLogin = () => {
@@ -24,7 +24,7 @@ export const useAdminLogin = () => {
   });
 };
  
-export const loginadmin = async (credentials: {phoneNumber: string, password: string}) => {
-  const response = await api.post('/users/login/admin', credentials);
+export const loginadmin = async (credentials: {username: string, password: string}) => {
+  const response = await api.post('/users/login', credentials);
   return response;
 };
