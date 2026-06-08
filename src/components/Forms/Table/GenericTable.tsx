@@ -127,7 +127,7 @@ export const GenericTable = <T,>({
           {showBackButton && onBack && (
             <button
               onClick={onBack}
-              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
+              className="rounded-lg border border-stroke bg-white p-2 text-gray-600 transition hover:border-gray-500 hover:bg-gray-50 dark:bg-boxdark dark:text-gray-400 dark:hover:bg-meta-4"
             >
               <FaArrowLeft className="h-5 w-5" />
             </button>
@@ -146,18 +146,18 @@ export const GenericTable = <T,>({
             placeholder="Search..."
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full max-w-[280px] rounded-2xl border-[1.5px] border-stroke  px-3 py-2 text-sm text-black outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            className="w-full max-w-[280px] rounded-2xl border-[1.5px] border-stroke px-3 py-2 text-sm text-black outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20 active:border-gray-500 disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-gray-500"
           />
         </div>
       )}
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
-            <tr className="bg-primary/10 text-left dark:bg-meta-4">
+            <tr className="bg-gray-100 text-left dark:bg-meta-4">
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`min-w-[120px] px-3 py-3 text-sm font-semibold text-primary dark:text-white ${column.className || ''}`}
+                  className={`min-w-[120px] px-3 py-3 text-sm font-semibold text-gray-700 dark:text-white ${column.className || ''}`}
                   onClick={
                     column.sortable
                       ? () => handleSort(column.accessor as keyof T)
@@ -168,7 +168,7 @@ export const GenericTable = <T,>({
                   <div className="flex items-center gap-2">
                     {column.header}
                     {column.sortable && (
-                      <span className="text-xs text-primary/70">
+                      <span className="text-xs text-gray-500">
                         {sortConfig?.key === column.accessor
                           ? sortConfig.direction === 'asc'
                             ? '↑'
@@ -180,7 +180,7 @@ export const GenericTable = <T,>({
                 </th>
               ))}
               {action && (
-                <th className="min-w-[100px] px-3 py-3 text-sm font-semibold text-primary dark:text-white">
+                <th className="min-w-[100px] px-3 py-3 text-sm font-semibold text-gray-700 dark:text-white">
                   Action
                 </th>
               )}
@@ -190,7 +190,7 @@ export const GenericTable = <T,>({
             {paginatedData.map((item, rowIndex) => (
               <tr
                 key={rowIndex}
-                className="bg-white text-sm transition hover:bg-primary/5 dark:bg-boxdark dark:hover:bg-meta-4"
+                className="bg-white text-sm transition hover:bg-gray-50 dark:bg-boxdark dark:hover:bg-meta-4"
               >
                 {columns.map((column, colIndex) => {
                   const value =
@@ -219,7 +219,7 @@ export const GenericTable = <T,>({
                               <button
                                 key={btnIndex}
                                 onClick={() => button.onClick(item)}
-                                className={`inline-flex items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary transition hover:bg-primary/20 ${button.className || ''}`}
+                                className={`inline-flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-200 ${button.className || ''}`}
                               >
                                 {button.icon || button.label}
                               </button>
@@ -232,10 +232,10 @@ export const GenericTable = <T,>({
                 })}
                 {action && (
                   <td className="border-b border-stroke px-3 py-3 dark:border-strokedark">
-                    <div className="flex flex-wrap items-center gap-2 py-1.5 sm:block sm:space-y-2">
+                    <div className="flex items-center gap-3 py-1.5">
                       {onView && (
                         <button
-                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
+                          className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:border-gray-500 hover:bg-gray-50 dark:bg-boxdark dark:text-gray-400"
                           onClick={() => onView(item)}
                         >
                           <FiEye className="h-4 w-4" />
@@ -243,7 +243,7 @@ export const GenericTable = <T,>({
                       )}
                       {handleEdit && (
                         <button
-                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
+                          className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:border-gray-500 hover:bg-gray-50 dark:bg-boxdark dark:text-gray-400"
                           onClick={() => handleEdit(item)}
                         >
                           <FiEdit className="h-4 w-4" />
@@ -251,7 +251,7 @@ export const GenericTable = <T,>({
                       )}
                       {handleDelete && (
                         <button
-                          className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 dark:bg-boxdark dark:text-white"
+                          className="rounded-lg border border-gray-300 bg-white p-2 text-red-600 transition hover:border-red-500 hover:bg-red-50 dark:text-red-400"
                           onClick={() => handleDelete(item)}
                         >
                           <MdDelete className="h-4 w-4" />
@@ -274,14 +274,14 @@ export const GenericTable = <T,>({
           </span>
           <div className="flex items-center gap-2">
             <button
-              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-white"
+              className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:border-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-gray-400"
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
             >
               <GrFormPrevious className="h-4 w-4" />
             </button>
             <button
-              className="rounded-lg border border-stroke bg-white p-2 text-primary transition hover:border-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-white"
+              className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:border-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-form-strokedark dark:bg-boxdark dark:text-gray-400"
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
