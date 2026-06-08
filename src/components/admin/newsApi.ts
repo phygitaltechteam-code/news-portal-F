@@ -1,31 +1,5 @@
 // services/newsApi.ts
 import {api} from '@/utils/axios';
-import axios from 'axios';
-
-export interface NewsImage {
-  url: string;
-  file?: File;
-}
-
-export interface NewsSection {
-  subtitle: string;
-  description: string;
-}
-
-export interface NewsLink {
-  title: string;
-  url: string;
-}
-
-export interface CreateNewsData {
-  title: string;
-  images: NewsImage[];
-  categoryIds: string[];
-  sections: NewsSection[];
-  links: NewsLink[];
-  metaDescription?: string;
-  featured: boolean;
-}
 
 export interface NewsResponse {
   success: boolean;
@@ -33,16 +7,27 @@ export interface NewsResponse {
   data?: any;
 }
 
-// Create mutation function
 export const useCreateNews = () => {
   const createNews = async (formData: FormData): Promise<NewsResponse> => {
     try {
-      // API endpoint - replace with your actual endpoint
-      const response = await api.post('/api/news/create', formData, {
+      console.log('=== SENDING TO API AS FORMDATA ===');
+      
+      // Log FormData contents for debugging
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(`${pair[0]}: [FILE] ${(pair[1] as File).name}`);
+        } else {
+          console.log(`${pair[0]}:`, pair[1]);
+        }
+      }
+      
+      const response = await api.post('/admin/news', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      console.log('API Response:', response.data);
 
       return {
         success: true,
@@ -51,6 +36,7 @@ export const useCreateNews = () => {
       };
     } catch (error: any) {
       console.error('Error creating news:', error);
+      console.error('Error response:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to create news',

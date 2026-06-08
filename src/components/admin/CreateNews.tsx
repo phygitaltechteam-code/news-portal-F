@@ -30,54 +30,43 @@ import {
   MdOutlinePublishedWithChanges,
 } from 'react-icons/md';
 import {useCreateNews} from './newsApi';
+import { api } from '@/utils/axios';
 
-// Schema for validation
+// Frontend Schema (for validation only)
 const newsSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  images: z
-    .array(
-      z.object({
-        url: z.string(),
-        file: z.any().optional(),
-      }),
-    )
-    .min(1, 'At least one image is required'),
-  categoryIds: z.array(z.string()).min(1, 'At least one category is required'),
-  sections: z.array(
-    z.object({
-      subtitle: z.string(),
-      description: z.string(),
-    }),
-  ),
-  links: z.array(
+  author: z.string().optional(),
+  publishedAt: z.string().optional(),
+  categories: z.array(z.string()).min(1, 'At least one category is required'),
+  content: z.array(
     z.object({
       title: z.string(),
-      url: z.string().url('Must be a valid URL'),
+      text: z.string(),
     }),
   ),
-  metaDescription: z.string().optional(),
-  featured: z.boolean().default(false),
+  images: z.array(z.string().url('Must be a valid URL')).optional(),
+  links: z.array(
+    z.object({
+      url: z.string().url('Must be a valid URL'),
+      text: z.string().optional(),
+    }),
+  ),
 });
 
 type NewsFormData = z.infer<typeof newsSchema>;
 
 // Categories with your theme colors
 const categories = [
-  {id: '1', name: 'Technology', color: 'bg-meta-5/10 text-meta-5', icon: '💻'},
-  {id: '2', name: 'Sports', color: 'bg-meta-3/10 text-meta-3', icon: '⚽'},
-  {id: '3', name: 'Politics', color: 'bg-meta-1/10 text-meta-1', icon: '🏛️'},
-  {
-    id: '4',
-    name: 'Entertainment',
-    color: 'bg-meta-6/10 text-meta-6',
-    icon: '🎬',
-  },
-  {id: '5', name: 'Business', color: 'bg-meta-8/10 text-meta-8', icon: '📈'},
-  {id: '6', name: 'Health', color: 'bg-meta-3/10 text-meta-3', icon: '🏥'},
-  {id: '7', name: 'Science', color: 'bg-meta-5/10 text-meta-5', icon: '🔬'},
+  {id: 'Technology', name: 'Technology', color: 'bg-meta-5/10 text-meta-5', icon: '💻'},
+  {id: 'Sports', name: 'Sports', color: 'bg-meta-3/10 text-meta-3', icon: '⚽'},
+  {id: 'Politics', name: 'Politics', color: 'bg-meta-1/10 text-meta-1', icon: '🏛️'},
+  {id: 'Entertainment', name: 'Entertainment', color: 'bg-meta-6/10 text-meta-6', icon: '🎬'},
+  {id: 'Business', name: 'Business', color: 'bg-meta-8/10 text-meta-8', icon: '📈'},
+  {id: 'Health', name: 'Health', color: 'bg-meta-3/10 text-meta-3', icon: '🏥'},
+  {id: 'Science', name: 'Science', color: 'bg-meta-5/10 text-meta-5', icon: '🔬'},
 ];
 
-// Rich Text Editor Component with alignment
+// Rich Text Editor Component
 const RichTextEditor = ({
   value,
   onChange,
@@ -110,48 +99,35 @@ const RichTextEditor = ({
 
   return (
     <div className="overflow-hidden rounded-lg border border-stroke bg-white">
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border-b border-stroke bg-gray p-2">
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('bold');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Bold (Ctrl+B)"
+          title="Bold"
         >
           <MdFormatBold size={18} />
         </button>
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('italic');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('italic'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Italic (Ctrl+I)"
+          title="Italic"
         >
           <MdFormatItalic size={18} />
         </button>
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('underline');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('underline'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Underline (Ctrl+U)"
+          title="Underline"
         >
           <MdFormatUnderlined size={18} />
         </button>
         <div className="mx-1 h-6 w-px bg-stroke"></div>
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('justifyLeft');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyLeft'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
           title="Align Left"
         >
@@ -159,10 +135,7 @@ const RichTextEditor = ({
         </button>
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('justifyCenter');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyCenter'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
           title="Align Center"
         >
@@ -170,10 +143,7 @@ const RichTextEditor = ({
         </button>
         <button
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            execCommand('justifyRight');
-          }}
+          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyRight'); }}
           className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
           title="Align Right"
         >
@@ -181,7 +151,6 @@ const RichTextEditor = ({
         </button>
       </div>
 
-      {/* Editor */}
       <div
         ref={editorRef}
         contentEditable
@@ -189,24 +158,19 @@ const RichTextEditor = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={`prose prose-sm min-h-[200px] max-w-none p-4 text-left text-body outline-none focus:ring-1 focus:ring-primary ${isFocused ? 'ring-1 ring-primary' : ''}`}
-        style={{
-          cursor: 'text',
-          direction: 'ltr',
-          textAlign: 'left',
-        }}
-        data-placeholder={placeholder}
+        style={{cursor: 'text', direction: 'ltr', textAlign: 'left'}}
       />
       {(!value || value === '<br>') && !isFocused && (
-        <div className="text-gray-400 pointer-events-none absolute ml-4 mt-[-180px]">
-          {placeholder}
+        <div className="pointer-events-none absolute ml-4 mt-[-180px] text-gray-400">
+          {placeholder || 'Write your content here...'}
         </div>
       )}
     </div>
   );
 };
 
-// Simple Text Input for Title
-const FormattedTitleInput = ({value, onChange, placeholder, error}: any) => {
+// Formatted Text Input for Titles
+const FormattedTextInput = ({value, onChange, placeholder, error}: any) => {
   const [showToolbar, setShowToolbar] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -232,16 +196,12 @@ const FormattedTitleInput = ({value, onChange, placeholder, error}: any) => {
             return;
         }
 
-        const newText =
-          value.substring(0, start) + wrappedText + value.substring(end);
+        const newText = value.substring(0, start) + wrappedText + value.substring(end);
         onChange(newText);
 
         setTimeout(() => {
           inputRef.current?.focus();
-          inputRef.current?.setSelectionRange(
-            start + wrappedText.length,
-            start + wrappedText.length,
-          );
+          inputRef.current?.setSelectionRange(start + wrappedText.length, start + wrappedText.length);
         }, 10);
       } else {
         alert('Please select text first');
@@ -249,17 +209,11 @@ const FormattedTitleInput = ({value, onChange, placeholder, error}: any) => {
     }
   };
 
-  // Convert markdown to HTML for display
-  const displayValue = value
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/_(.*?)_/g, '<u>$1</u>');
-
   return (
     <div className="space-y-2">
       {showToolbar && (
         <div className="flex flex-wrap items-center gap-1 rounded-lg border border-stroke bg-gray p-1.5">
-          <span className="px-2 text-xs text-body">Format title:</span>
+          <span className="px-2 text-xs text-body">Format text:</span>
           <button
             type="button"
             onClick={() => applyFormat('bold')}
@@ -291,7 +245,7 @@ const FormattedTitleInput = ({value, onChange, placeholder, error}: any) => {
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setShowToolbar(true)}
         onBlur={() => setTimeout(() => setShowToolbar(false), 200)}
-        className="w-full rounded-lg border border-stroke bg-white px-5 py-3 text-left text-lg font-semibold text-black placeholder-body/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm font-medium text-black placeholder-body/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         placeholder={placeholder}
         dir="ltr"
       />
@@ -310,9 +264,8 @@ const CreateNews = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<number | null>(null);
-  const [uploadingImages, setUploadingImages] = useState<{
-    [key: number]: boolean;
-  }>({});
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [imageUrlInputs, setImageUrlInputs] = useState<string[]>([]);
 
   const {createNews} = useCreateNews();
 
@@ -327,26 +280,20 @@ const CreateNews = () => {
     resolver: zodResolver(newsSchema),
     defaultValues: {
       title: '',
-      images: [{url: '', file: undefined}],
-      categoryIds: [],
-      sections: [{subtitle: '', description: ''}],
-      links: [{title: '', url: ''}],
-      metaDescription: '',
-      featured: false,
+      author: '',
+      publishedAt: new Date().toISOString().split('T')[0],
+      categories: [],
+      content: [{title: '', text: ''}],
+      images: [],
+      links: [{url: '', text: ''}],
     },
   });
 
   const {
-    fields: imageFields,
-    append: appendImage,
-    remove: removeImage,
-  } = useFieldArray({control, name: 'images'});
-
-  const {
-    fields: sectionFields,
-    append: appendSection,
-    remove: removeSection,
-  } = useFieldArray({control, name: 'sections'});
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({control, name: 'content'});
 
   const {
     fields: linkFields,
@@ -363,13 +310,13 @@ const CreateNews = () => {
       ? selectedCategories.filter((id) => id !== categoryId)
       : [...selectedCategories, categoryId];
     setSelectedCategories(updated);
-    setValue('categoryIds', updated);
+    setValue('categories', updated);
   };
 
   const removeCategory = (categoryId: string) => {
     const updated = selectedCategories.filter((id) => id !== categoryId);
     setSelectedCategories(updated);
-    setValue('categoryIds', updated);
+    setValue('categories', updated);
   };
 
   const getCategoryName = (id: string) => {
@@ -387,16 +334,37 @@ const CreateNews = () => {
     return category ? category.icon : '📰';
   };
 
-  const handleImageFileUpload = (index: number, file: File) => {
-    setUploadingImages((prev) => ({...prev, [index]: true}));
-    const previewUrl = URL.createObjectURL(file);
-    setValue(`images.${index}.url`, previewUrl);
-    setValue(`images.${index}.file`, file);
-    setUploadingImages((prev) => ({...prev, [index]: false}));
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedImages(prev => [...prev, ...files]);
+    
+    // Create preview URLs for display
+    files.forEach(file => {
+      const previewUrl = URL.createObjectURL(file);
+      setImageUrlInputs(prev => [...prev, previewUrl]);
+    });
   };
 
-  // Convert markdown to HTML for preview
-  const formatTextForPreview = (text: string) => {
+  const removeUploadedImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setImageUrlInputs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addImageUrlInput = () => {
+    setImageUrlInputs(prev => [...prev, '']);
+  };
+
+  const updateImageUrl = (index: number, value: string) => {
+    const newUrls = [...imageUrlInputs];
+    newUrls[index] = value;
+    setImageUrlInputs(newUrls);
+  };
+
+  const removeImageUrlInput = (index: number) => {
+    setImageUrlInputs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getFormattedText = (text: string) => {
     if (!text) return '';
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
@@ -404,51 +372,72 @@ const CreateNews = () => {
       .replace(/_(.*?)_/g, '<u class="underline">$1</u>');
   };
 
-  const getFormattedTitle = (title: string) => {
-    if (!title) return 'Your News Title Here';
-    return title
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/_(.*?)_/g, '<u class="underline">$1</u>');
-  };
-
-  const onSubmit = async (data: NewsFormData) => {
-    try {
-      const formData = new FormData();
-      const formattedTitle = data.title
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/_(.*?)_/g, '<u>$1</u>');
-
-      formData.append('title', formattedTitle);
-      formData.append('categoryIds', JSON.stringify(data.categoryIds));
-      formData.append('metaDescription', data.metaDescription || '');
-      formData.append('featured', String(data.featured));
-
-      data.images.forEach((image) => {
-        if (image.file) {
-          formData.append(`images`, image.file);
-        } else if (image.url) {
-          formData.append(`imageUrls`, image.url);
-        }
+const onSubmit = async (data: NewsFormData) => {
+  try {
+    console.log('=== SUBMITTING NEWS DATA AS JSON ===');
+    
+    // Collect all image URLs (from both uploaded files and URL inputs)
+    const allImages: string[] = [];
+    
+    // For uploaded files, convert to base64 or temporary URLs
+    // Note: This is for preview only - you need to upload files separately
+    for (const file of uploadedImages) {
+      // Convert file to base64 string
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
       });
-
-      formData.append('sections', JSON.stringify(data.sections));
-      formData.append('links', JSON.stringify(data.links));
-
-      const response = await createNews(formData);
-
-      if (response.success) {
-        alert('News created successfully!');
-        window.location.href = '/news';
-      } else {
-        alert(response.message || 'Failed to create news');
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred while creating the news');
+      allImages.push(base64);
     }
-  };
+    
+    // Add image URLs
+    const validImageUrls = imageUrlInputs.filter(url => url && url.trim() !== '');
+    allImages.push(...validImageUrls);
+    
+    // Prepare the payload as JSON (matching backend schema)
+    const payload = {
+      title: data.title,
+      author: data.author || '',
+      publishedAt: data.publishedAt || new Date().toISOString(),
+      categories: data.categories, // This is already an array
+      content: data.content.map(item => ({
+        title: item.title
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/_(.*?)_/g, '<u>$1</u>'),
+        text: item.text,
+      })),
+      images: allImages, // Array of strings (URLs or base64)
+      links: data.links
+        .filter(link => link.url && link.url.trim() !== '')
+        .map(link => ({
+          url: link.url,
+          text: link.text || '',
+        })),
+    };
+    
+    console.log('Sending payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await api.post('/admin/news', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.data.success || response.status === 200 || response.status === 201) {
+      alert('News created successfully!');
+      window.location.href = '/news';
+    } else {
+      alert(response.data.message || 'Failed to create news');
+    }
+  } catch (error: any) {
+    console.error('Error submitting form:', error);
+    const errorMessage = error.response?.data?.message || 'An error occurred while creating the news';
+    alert(errorMessage);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray p-6 font-satoshi" dir="ltr">
@@ -464,169 +453,154 @@ const CreateNews = () => {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                   <MdOutlinePublishedWithChanges className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-primary">
-                  Create New Article
-                </span>
+                <span className="text-sm font-medium text-primary">Create New Article</span>
               </div>
-              <h1 className="text-title-xl2 font-bold text-black">
-                Write News
-              </h1>
-              <p className="mt-1 text-body">
-                Create engaging news articles with rich content and media
-              </p>
+              <h1 className="text-title-xl2 font-bold text-black">Write News</h1>
+              <p className="mt-1 text-body">Create engaging news articles with rich content and media</p>
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() =>
-                  setActiveTab(activeTab === 'write' ? 'preview' : 'write')
-                }
+                onClick={() => setActiveTab(activeTab === 'write' ? 'preview' : 'write')}
                 className={`flex items-center gap-2 rounded-lg px-5 py-2.5 font-medium transition-all duration-200 ${
                   activeTab === 'preview'
                     ? 'border-2 border-primary bg-white text-primary hover:bg-primary/5'
                     : 'bg-primary text-white shadow-default hover:bg-primary/90'
                 }`}
               >
-                {activeTab === 'write' ? (
-                  <MdPreview size={20} />
-                ) : (
-                  <MdEdit size={20} />
-                )}
+                {activeTab === 'write' ? <MdPreview size={20} /> : <MdEdit size={20} />}
                 {activeTab === 'write' ? 'Preview Mode' : 'Edit Mode'}
               </button>
             </div>
           </div>
 
-          {/* Title Input */}
-          <div className="mt-4">
-            <FormattedTitleInput
-              value={watchTitle}
-              onChange={(value: string) => setValue('title', value)}
-              placeholder="Enter news title... (Select text to format with **bold**, *italic*, _underline_)"
-              error={errors.title?.message}
-            />
+          {/* Title and Author Inputs */}
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-black">Title *</label>
+              <FormattedTextInput
+                value={watchTitle}
+                onChange={(value: string) => setValue('title', value)}
+                placeholder="Enter news title..."
+                error={errors.title?.message}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-black">Author</label>
+              <input
+                type="text"
+                {...register('author')}
+                className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm text-black focus:border-primary focus:outline-none"
+                placeholder="Author name"
+              />
+            </div>
           </div>
         </div>
 
         {/* Main Content Area */}
         {activeTab === 'preview' ? (
           // Preview Section
-          <div
-            className="overflow-hidden rounded-2xl bg-white shadow-card"
-            dir="ltr"
-          >
-            {previewData.images[0]?.url && (
-              <div className="relative h-96 w-full">
-                <img
-                  src={previewData.images[0].url}
-                  alt="Cover"
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://via.placeholder.com/1200x600?text=Image+Not+Found';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {previewData.categoryIds.map((catId) => (
-                      <span
-                        key={catId}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${getCategoryColor(catId)} backdrop-blur-sm`}
-                      >
+          <div className="overflow-hidden rounded-2xl bg-white shadow-card">
+            <div className="p-8 md:p-12">
+              {/* Title */}
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-black md:text-4xl lg:text-5xl text-left mb-4">
+                  {previewData.title || 'Your News Title'}
+                </h1>
+                
+                {/* Author and Date */}
+                {(previewData.author || previewData.publishedAt) && (
+                  <div className="flex flex-wrap items-center gap-4 text-body text-sm border-b border-stroke pb-4 mb-4">
+                    {previewData.author && <span>By {previewData.author}</span>}
+                    {previewData.publishedAt && <span>{new Date(previewData.publishedAt).toLocaleDateString()}</span>}
+                  </div>
+                )}
+                
+                {/* Categories */}
+                {previewData.categories && previewData.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {previewData.categories.map((catId) => (
+                      <span key={catId} className={`rounded-full px-3 py-1 text-xs font-medium ${getCategoryColor(catId)}`}>
                         {getCategoryIcon(catId)} {getCategoryName(catId)}
                       </span>
                     ))}
                   </div>
-                  <h1
-                    className="text-left text-3xl font-bold text-white md:text-4xl lg:text-5xl"
-                    dangerouslySetInnerHTML={{
-                      __html: getFormattedTitle(previewData.title),
-                    }}
-                  />
-                  <div className="mt-4 flex items-center gap-4 text-white/80">
-                    <div className="flex items-center gap-1">
-                      <MdTimer size={16} />
-                      <span className="text-sm">5 min read</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MdPublic size={16} />
-                      <span className="text-sm">Public</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="p-8 md:p-12">
-              {/* Gallery preview */}
-              {previewData.images.length > 1 && (
-                <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {previewData.images
-                    .slice(1)
-                    .map(
-                      (img, idx) =>
-                        img.url && (
-                          <img
-                            key={idx}
-                            src={img.url}
-                            alt={`Gallery ${idx + 1}`}
-                            className="h-48 w-full rounded-xl object-cover shadow-md transition-transform hover:scale-105"
-                          />
-                        ),
-                    )}
-                </div>
-              )}
-
-              {/* Content preview with formatted text */}
-              <div className="prose prose-lg max-w-none text-left">
-                {previewData.sections.map(
-                  (section, idx) =>
-                    (section.subtitle || section.description) && (
-                      <div key={idx} className="mb-8">
-                        {section.subtitle && (
-                          <h2 className="mb-3 border-l-4 border-primary pl-4 text-left text-2xl font-bold text-black">
-                            {section.subtitle}
-                          </h2>
-                        )}
-                        {section.description && (
-                          <div
-                            className="text-left leading-relaxed text-body"
-                            dangerouslySetInnerHTML={{
-                              __html: section.description,
-                            }}
-                            style={{textAlign: 'left'}}
-                          />
-                        )}
-                      </div>
-                    ),
                 )}
               </div>
 
-              {/* Links section */}
-              {previewData.links.filter((link) => link.title && link.url)
-                .length > 0 && (
-                <div className="mt-10 rounded-xl bg-gray p-6 text-left">
+              {/* Images Gallery - Show both uploaded and URL images */}
+              {((uploadedImages.length > 0) || (imageUrlInputs.filter(u => u).length > 0)) && (
+                <div className="mb-8">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {/* Uploaded images preview */}
+                    {uploadedImages.map((file, idx) => (
+                      <img
+                        key={`upload-${idx}`}
+                        src={URL.createObjectURL(file)}
+                        alt={`Uploaded ${idx + 1}`}
+                        className="w-full rounded-xl object-cover shadow-md"
+                        style={{ height: '250px' }}
+                      />
+                    ))}
+                    {/* URL images preview */}
+                    {imageUrlInputs.filter(url => url).map((url, idx) => (
+                      <img
+                        key={`url-${idx}`}
+                        src={url}
+                        alt={`Image ${idx + 1}`}
+                        className="w-full rounded-xl object-cover shadow-md"
+                        style={{ height: '250px' }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL';
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Content Sections */}
+              <div className="prose prose-lg max-w-none">
+                {previewData.content && previewData.content.map((section, idx) => (
+                  (section.title || section.text) && (
+                    <div key={idx} className="mb-8">
+                      {section.title && (
+                        <h2 className="mb-3 border-l-4 border-primary pl-4 text-left text-2xl font-bold text-black">
+                          {section.title}
+                        </h2>
+                      )}
+                      {section.text && (
+                        <div
+                          className="text-left leading-relaxed text-body"
+                          dangerouslySetInnerHTML={{ __html: section.text }}
+                        />
+                      )}
+                    </div>
+                  )
+                ))}
+              </div>
+
+              {/* Related Links */}
+              {previewData.links && previewData.links.filter(link => link.url).length > 0 && (
+                <div className="mt-10 rounded-xl bg-gray p-6">
                   <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-black">
                     <MdLink className="text-primary" />
                     Related Links
                   </h3>
                   <ul className="space-y-2">
-                    {previewData.links.map(
-                      (link, idx) =>
-                        link.title &&
-                        link.url && (
-                          <li key={idx}>
-                            <a
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-primary hover:underline"
-                            >
-                              🔗 {link.title}
-                            </a>
-                          </li>
-                        ),
-                    )}
+                    {previewData.links.map((link, idx) => (
+                      link.url && (
+                        <li key={idx}>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            🔗 {link.text || link.url}
+                          </a>
+                        </li>
+                      )
+                    ))}
                   </ul>
                 </div>
               )}
@@ -638,99 +612,6 @@ const CreateNews = () => {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Left Column */}
               <div className="space-y-6">
-                {/* Images Card */}
-                <div className="rounded-2xl bg-white p-6 shadow-card">
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-meta-3/10">
-                        <MdImage className="h-5 w-5 text-meta-3" />
-                      </div>
-                      <div>
-                        <h2 className="font-semibold text-black">Images</h2>
-                        <p className="text-sm text-body">
-                          Add images via URL or upload
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => appendImage({url: '', file: undefined})}
-                      className="flex items-center gap-1 rounded-lg border border-primary bg-white px-3 py-1.5 text-sm font-medium text-primary transition-all hover:bg-primary/5"
-                    >
-                      <MdAdd size={16} /> Add Image
-                    </button>
-                  </div>
-
-                  <div className="max-h-96 space-y-3 overflow-y-auto">
-                    {imageFields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className="group rounded-lg border border-stroke p-3 transition-all hover:border-primary/30"
-                      >
-                        <div className="flex items-start gap-3">
-                          <MdDragHandle className="mt-2 h-5 w-5 cursor-move text-body/30" />
-                          <div className="flex-1 space-y-2">
-                            <input
-                              {...register(`images.${index}.url`)}
-                              className="w-full rounded-md border border-stroke bg-gray px-3 py-2 text-left text-sm text-body focus:border-primary focus:outline-none"
-                              placeholder="https://example.com/image.jpg"
-                            />
-                            <div className="relative">
-                              <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-stroke"></div>
-                              </div>
-                              <div className="relative flex justify-center text-xs">
-                                <span className="bg-white px-2 text-body">
-                                  OR
-                                </span>
-                              </div>
-                            </div>
-                            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-stroke bg-gray p-2 transition-all hover:border-primary">
-                              <MdCloudUpload
-                                size={18}
-                                className="text-primary"
-                              />
-                              <span className="text-xs text-body">
-                                Upload Image
-                              </span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageFileUpload(index, file);
-                                }}
-                              />
-                            </label>
-                            {watch(`images.${index}.url`) && (
-                              <img
-                                src={watch(`images.${index}.url`)}
-                                alt="Preview"
-                                className="h-20 w-20 rounded-lg object-cover"
-                              />
-                            )}
-                          </div>
-                          {imageFields.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index)}
-                              className="text-meta-1"
-                            >
-                              <MdDelete size={18} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.images && (
-                    <p className="mt-2 text-sm text-meta-1">
-                      {errors.images.message}
-                    </p>
-                  )}
-                </div>
-
                 {/* Categories Card */}
                 <div className="rounded-2xl bg-white p-6 shadow-card">
                   <div className="mb-4 flex items-center gap-3">
@@ -739,25 +620,16 @@ const CreateNews = () => {
                     </div>
                     <div>
                       <h2 className="font-semibold text-black">Categories</h2>
-                      <p className="text-sm text-body">
-                        Select relevant categories
-                      </p>
+                      <p className="text-sm text-body">Select relevant categories</p>
                     </div>
                   </div>
 
                   {selectedCategories.length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-2">
                       {selectedCategories.map((catId) => (
-                        <span
-                          key={catId}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${getCategoryColor(catId)}`}
-                        >
+                        <span key={catId} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${getCategoryColor(catId)}`}>
                           {getCategoryIcon(catId)} {getCategoryName(catId)}
-                          <button
-                            type="button"
-                            onClick={() => removeCategory(catId)}
-                            className="ml-1 rounded-full p-0.5 hover:bg-black/10"
-                          >
+                          <button type="button" onClick={() => removeCategory(catId)} className="ml-1 rounded-full p-0.5 hover:bg-black/10">
                             <MdClose size={12} />
                           </button>
                         </span>
@@ -771,87 +643,133 @@ const CreateNews = () => {
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className="flex w-full items-center justify-between rounded-lg border border-stroke bg-white px-5 py-3 text-left text-body focus:border-primary focus:outline-none"
                     >
-                      <span>
-                        {selectedCategories.length === 0
-                          ? 'Select categories...'
-                          : `${selectedCategories.length} selected`}
-                      </span>
-                      <MdArrowDropDown
-                        size={20}
-                        className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-                      />
+                      <span>{selectedCategories.length === 0 ? 'Select categories...' : `${selectedCategories.length} selected`}</span>
+                      <MdArrowDropDown size={20} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isDropdownOpen && (
                       <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-60 overflow-y-auto rounded-lg border border-stroke bg-white shadow-4">
                         {categories.map((category) => (
-                          <label
-                            key={category.id}
-                            className="flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray"
-                          >
+                          <label key={category.id} className="flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray">
                             <input
                               type="checkbox"
                               checked={selectedCategories.includes(category.id)}
                               onChange={() => handleCategorySelect(category.id)}
                               className="h-4 w-4 rounded border-stroke text-primary"
                             />
-                            <span className="flex items-center gap-2 text-sm text-black">
-                              {category.icon} {category.name}
-                            </span>
-                            {selectedCategories.includes(category.id) && (
-                              <MdCheck
-                                size={16}
-                                className="ml-auto text-primary"
-                              />
-                            )}
+                            <span className="flex items-center gap-2 text-sm text-black">{category.icon} {category.name}</span>
+                            {selectedCategories.includes(category.id) && <MdCheck size={16} className="ml-auto text-primary" />}
                           </label>
                         ))}
                       </div>
                     )}
                   </div>
-                  {errors.categoryIds && (
-                    <p className="mt-2 text-sm text-meta-1">
-                      {errors.categoryIds.message}
-                    </p>
-                  )}
+                  {errors.categories && <p className="mt-2 text-sm text-meta-1">{errors.categories.message}</p>}
                 </div>
 
-                {/* Meta Description */}
+                {/* Images Card - Multi Image Upload */}
+                <div className="rounded-2xl bg-white p-6 shadow-card">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-meta-3/10">
+                        <MdImage className="h-5 w-5 text-meta-3" />
+                      </div>
+                      <div>
+                        <h2 className="font-semibold text-black">Images</h2>
+                        <p className="text-sm text-body">Upload multiple images or add image URLs</p>
+                      </div>
+                    </div>
+                    <label className="cursor-pointer rounded-lg border border-primary bg-white px-3 py-1.5 text-sm font-medium text-primary transition-all hover:bg-primary/5">
+                      <MdCloudUpload size={16} className="inline mr-1" /> Upload Images
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Uploaded Images Previews */}
+                  {uploadedImages.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs text-body mb-2">Uploaded Images:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {uploadedImages.map((file, idx) => (
+                          <div key={idx} className="relative">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Preview ${idx}`}
+                              className="h-20 w-20 rounded-lg object-cover border border-stroke"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeUploadedImage(idx)}
+                              className="absolute -right-1 -top-1 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-600"
+                            >
+                              <MdClose size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Image URL Inputs */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-body">Image URLs:</p>
+                      <button
+                        type="button"
+                        onClick={addImageUrlInput}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        + Add URL
+                      </button>
+                    </div>
+                    {imageUrlInputs.map((url, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={url}
+                          onChange={(e) => updateImageUrl(idx, e.target.value)}
+                          className="flex-1 rounded-md border border-stroke bg-gray px-3 py-2 text-left text-sm text-body focus:border-primary focus:outline-none"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImageUrlInput(idx)}
+                          className="rounded-md bg-meta-1/10 p-2 text-meta-1 hover:bg-meta-1/20"
+                        >
+                          <MdDelete size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Publication Date */}
                 <div className="rounded-2xl bg-white p-6 shadow-card">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-meta-5/10">
-                      <MdPublic className="h-5 w-5 text-meta-5" />
+                      <MdTimer className="h-5 w-5 text-meta-5" />
                     </div>
                     <div>
-                      <h2 className="font-semibold text-black">
-                        Meta Description
-                      </h2>
-                      <p className="text-sm text-body">
-                        Brief summary for SEO (150-160 characters)
-                      </p>
+                      <h2 className="font-semibold text-black">Publication Date</h2>
+                      <p className="text-sm text-body">When to publish this article</p>
                     </div>
                   </div>
-                  <textarea
-                    {...register('metaDescription')}
-                    rows={3}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none"
-                    placeholder="Write a concise summary of your article for search engines..."
+                  <input
+                    type="date"
+                    {...register('publishedAt')}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm text-black focus:border-primary focus:outline-none"
                   />
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xs text-meta-3">
-                      Tip: Include key keywords
-                    </span>
-                    <span
-                      className={`text-xs ${(watch('metaDescription')?.length || 0) > 160 ? 'text-meta-1' : 'text-body'}`}
-                    >
-                      {watch('metaDescription')?.length || 0}/160 characters
-                    </span>
-                  </div>
                 </div>
               </div>
 
               {/* Right Column */}
               <div className="space-y-6">
-                {/* Content Sections with Rich Text Editor */}
+                {/* Content Sections */}
                 <div className="rounded-2xl bg-white p-6 shadow-card">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -859,19 +777,13 @@ const CreateNews = () => {
                         <MdDescription className="h-5 w-5 text-meta-5" />
                       </div>
                       <div>
-                        <h2 className="font-semibold text-black">
-                          Content Sections
-                        </h2>
-                        <p className="text-sm text-body">
-                          Organize your article with rich formatting
-                        </p>
+                        <h2 className="font-semibold text-black">Content Sections</h2>
+                        <p className="text-sm text-body">Organize your article with rich formatting</p>
                       </div>
                     </div>
                     <button
                       type="button"
-                      onClick={() =>
-                        appendSection({subtitle: '', description: ''})
-                      }
+                      onClick={() => appendContent({title: '', text: ''})}
                       className="flex items-center gap-1 rounded-lg border border-primary bg-white px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/5"
                     >
                       <MdAdd size={16} /> Add Section
@@ -879,43 +791,31 @@ const CreateNews = () => {
                   </div>
 
                   <div className="max-h-[600px] space-y-4 overflow-y-auto">
-                    {sectionFields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className={`rounded-xl border-2 transition-all ${activeSection === index ? 'border-primary shadow-card' : 'border-stroke'}`}
-                      >
+                    {contentFields.map((field, index) => (
+                      <div key={field.id} className={`rounded-xl border-2 transition-all ${activeSection === index ? 'border-primary shadow-card' : 'border-stroke'}`}>
                         <div className="flex items-center justify-between border-b border-stroke bg-gray p-3">
                           <div className="flex items-center gap-2">
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                               {index + 1}
                             </span>
-                            <span className="text-sm font-medium text-black">
-                              Section
-                            </span>
+                            <span className="text-sm font-medium text-black">Section</span>
                           </div>
-                          {sectionFields.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeSection(index)}
-                              className="rounded p-1 text-meta-1 hover:bg-meta-1/10"
-                            >
+                          {contentFields.length > 1 && (
+                            <button type="button" onClick={() => removeContent(index)} className="rounded p-1 text-meta-1 hover:bg-meta-1/10">
                               <MdDelete size={18} />
                             </button>
                           )}
                         </div>
                         <div className="space-y-3 p-4">
-                          <input
-                            {...register(`sections.${index}.subtitle`)}
-                            className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm font-medium text-black focus:border-primary focus:outline-none"
-                            placeholder="Section subtitle (optional)"
+                          <FormattedTextInput
+                            value={watch(`content.${index}.title`) || ''}
+                            onChange={(value: string) => setValue(`content.${index}.title`, value)}
+                            placeholder="Section title (optional)"
                           />
-
-                          {/* Rich Text Editor with Alignment */}
                           <RichTextEditor
-                            value={watch(`sections.${index}.description`) || ''}
-                            onChange={(value) =>
-                              setValue(`sections.${index}.description`, value)
-                            }
+                            value={watch(`content.${index}.text`) || ''}
+                            onChange={(value) => setValue(`content.${index}.text`, value)}
+                            placeholder="Write your content here..."
                           />
                         </div>
                       </div>
@@ -931,17 +831,13 @@ const CreateNews = () => {
                         <MdLink className="h-5 w-5 text-meta-8" />
                       </div>
                       <div>
-                        <h2 className="font-semibold text-black">
-                          Related Links
-                        </h2>
-                        <p className="text-sm text-body">
-                          Add references or sources
-                        </p>
+                        <h2 className="font-semibold text-black">Related Links</h2>
+                        <p className="text-sm text-body">Add references or sources</p>
                       </div>
                     </div>
                     <button
                       type="button"
-                      onClick={() => appendLink({title: '', url: ''})}
+                      onClick={() => appendLink({url: '', text: ''})}
                       className="flex items-center gap-1 rounded-lg border border-primary bg-white px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/5"
                     >
                       <MdAdd size={16} /> Add Link
@@ -950,14 +846,11 @@ const CreateNews = () => {
 
                   <div className="space-y-3">
                     {linkFields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className="flex flex-col gap-2 rounded-lg border border-stroke p-3 sm:flex-row"
-                      >
+                      <div key={field.id} className="flex flex-col gap-2 rounded-lg border border-stroke p-3 sm:flex-row">
                         <input
-                          {...register(`links.${index}.title`)}
+                          {...register(`links.${index}.text`)}
                           className="flex-1 rounded-md border border-stroke bg-gray px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none"
-                          placeholder="Link title"
+                          placeholder="Link text (optional)"
                         />
                         <input
                           {...register(`links.${index}.url`)}
@@ -965,11 +858,7 @@ const CreateNews = () => {
                           placeholder="https://example.com"
                         />
                         {linkFields.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeLink(index)}
-                            className="rounded-md bg-meta-1/10 p-2 text-meta-1 hover:bg-meta-1/20"
-                          >
+                          <button type="button" onClick={() => removeLink(index)} className="rounded-md bg-meta-1/10 p-2 text-meta-1 hover:bg-meta-1/20">
                             <MdDelete size={18} />
                           </button>
                         )}
@@ -983,18 +872,10 @@ const CreateNews = () => {
             {/* Action Buttons */}
             <div className="sticky bottom-0 z-10 mt-6 rounded-2xl bg-white p-4 shadow-card">
               <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => window.history.back()}
-                  className="rounded-lg border border-stroke bg-white px-8 py-2.5 font-medium text-body transition-colors hover:bg-gray"
-                >
+                <button type="button" onClick={() => window.history.back()} className="rounded-lg border border-stroke bg-white px-8 py-2.5 font-medium text-body transition-colors hover:bg-gray">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-2.5 font-medium text-white shadow-default transition-all hover:bg-primary/90 disabled:opacity-50"
-                >
+                <button type="submit" disabled={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-2.5 font-medium text-white shadow-default transition-all hover:bg-primary/90 disabled:opacity-50">
                   <MdSave size={18} />
                   {isSubmitting ? 'Publishing...' : 'Publish News'}
                 </button>
