@@ -7,7 +7,6 @@ import {
   MdDelete,
   MdImage,
   MdLink,
-  MdTitle,
   MdDescription,
   MdCategory,
   MdPreview,
@@ -21,16 +20,13 @@ import {
   MdFormatAlignRight,
   MdArrowDropDown,
   MdCheck,
-  MdDragHandle,
-  MdPublic,
   MdTimer,
   MdCloudUpload,
-  MdVisibility,
   MdEdit,
   MdOutlinePublishedWithChanges,
 } from 'react-icons/md';
 import {useCreateNews} from './newsApi';
-import { api } from '@/utils/axios';
+import { useGetCategories } from '../category/categoryApi';
 
 // Frontend Schema (for validation only)
 const newsSchema = z.object({
@@ -44,7 +40,7 @@ const newsSchema = z.object({
       text: z.string(),
     }),
   ),
-  images: z.array(z.string().url('Must be a valid URL')).optional(),
+  images: z.array(z.string()).optional(),
   links: z.array(
     z.object({
       url: z.string().url('Must be a valid URL'),
@@ -55,16 +51,23 @@ const newsSchema = z.object({
 
 type NewsFormData = z.infer<typeof newsSchema>;
 
-// Categories with your theme colors
-const categories = [
-  {id: 'Technology', name: 'Technology', color: 'bg-meta-5/10 text-meta-5', icon: '💻'},
-  {id: 'Sports', name: 'Sports', color: 'bg-meta-3/10 text-meta-3', icon: '⚽'},
-  {id: 'Politics', name: 'Politics', color: 'bg-meta-1/10 text-meta-1', icon: '🏛️'},
-  {id: 'Entertainment', name: 'Entertainment', color: 'bg-meta-6/10 text-meta-6', icon: '🎬'},
-  {id: 'Business', name: 'Business', color: 'bg-meta-8/10 text-meta-8', icon: '📈'},
-  {id: 'Health', name: 'Health', color: 'bg-meta-3/10 text-meta-3', icon: '🏥'},
-  {id: 'Science', name: 'Science', color: 'bg-meta-5/10 text-meta-5', icon: '🔬'},
-];
+// Helper function to get random color for categories
+const getCategoryColor = (index: number) => {
+  const colors = [
+    'bg-meta-5/10 text-meta-5',
+    'bg-meta-3/10 text-meta-3',
+    'bg-meta-1/10 text-meta-1',
+    'bg-meta-6/10 text-meta-6',
+    'bg-meta-8/10 text-meta-8',
+  ];
+  return colors[index % colors.length];
+};
+
+// Helper function to get icon for category
+const getCategoryIcon = (index: number) => {
+  const icons = ['', '', '', '', '', '', ''];
+  return icons[index % icons.length];
+};
 
 // Rich Text Editor Component
 const RichTextEditor = ({
@@ -266,6 +269,24 @@ const CreateNews = () => {
   const [activeSection, setActiveSection] = useState<number | null>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imageUrlInputs, setImageUrlInputs] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch categories from API
+  const { data: categoriesData, isLoading: isLoadingCategories, error: categoriesError } = useGetCategories();
+  
+  // Extract categories array from API response
+  let categories: any[] = [];
+  if (categoriesData) {
+    if (Array.isArray(categoriesData)) {
+      categories = categoriesData;
+    } else if (categoriesData.data && Array.isArray(categoriesData.data)) {
+      categories = categoriesData.data;
+    } else if (categoriesData.categories && Array.isArray(categoriesData.categories)) {
+      categories = categoriesData.categories;
+    } else {
+      categories = [];
+    }
+  }
 
   const {createNews} = useCreateNews();
 
@@ -275,7 +296,7 @@ const CreateNews = () => {
     handleSubmit,
     watch,
     setValue,
-    formState: {errors, isSubmitting},
+    formState: {errors},
   } = useForm<NewsFormData>({
     resolver: zodResolver(newsSchema),
     defaultValues: {
@@ -320,34 +341,29 @@ const CreateNews = () => {
   };
 
   const getCategoryName = (id: string) => {
-    const category = categories.find((c) => c.id === id);
-    return category ? category.name : '';
+    const category = categories.find((c: any) => c.id === id || c._id === id);
+    return category ? category.name : id;
   };
 
-  const getCategoryColor = (id: string) => {
-    const category = categories.find((c) => c.id === id);
-    return category ? category.color : 'bg-gray-100 text-gray-800';
+  const getCategoryColorById = (id: string, index: number) => {
+    const categoryIndex = categories.findIndex((c: any) => c.id === id || c._id === id);
+    return getCategoryColor(categoryIndex >= 0 ? categoryIndex : index);
   };
 
-  const getCategoryIcon = (id: string) => {
-    const category = categories.find((c) => c.id === id);
-    return category ? category.icon : '📰';
+  const getCategoryIconById = (id: string, index: number) => {
+    const categoryIndex = categories.findIndex((c: any) => c.id === id || c._id === id);
+    return getCategoryIcon(categoryIndex >= 0 ? categoryIndex : index);
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setUploadedImages(prev => [...prev, ...files]);
     
-    // Create preview URLs for display
-    files.forEach(file => {
-      const previewUrl = URL.createObjectURL(file);
-      setImageUrlInputs(prev => [...prev, previewUrl]);
-    });
+    // Don't create preview URLs immediately - we'll handle them in the preview
   };
 
   const removeUploadedImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
-    setImageUrlInputs(prev => prev.filter((_, i) => i !== index));
   };
 
   const addImageUrlInput = () => {
@@ -364,80 +380,98 @@ const CreateNews = () => {
     setImageUrlInputs(prev => prev.filter((_, i) => i !== index));
   };
 
-  const getFormattedText = (text: string) => {
-    if (!text) return '';
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/_(.*?)_/g, '<u class="underline">$1</u>');
+  const onSubmit = async (data: NewsFormData) => {
+    setIsSubmitting(true);
+    try {
+      // Check if there are any uploaded files
+      const hasFiles = uploadedImages.length > 0;
+      
+      if (hasFiles) {
+        // Use FormData for file uploads
+        const formData = new FormData();
+        
+        // Add basic fields as JSON strings
+        formData.append('title', data.title);
+        if (data.author) formData.append('author', data.author);
+        if (data.publishedAt) formData.append('publishedAt', data.publishedAt);
+        
+        // ✅ Categories should be sent as JSON string (array)
+        formData.append('categories', JSON.stringify(data.categories));
+        
+        // ✅ Content should be sent as JSON string (array of objects)
+        const formattedContent = data.content.map(item => ({
+          title: item.title
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/_(.*?)_/g, '<u>$1</u>'),
+          text: item.text,
+        }));
+        formData.append('content', JSON.stringify(formattedContent));
+        
+        // ✅ Links should be sent as JSON string (array of objects)
+        const validLinks = data.links.filter(link => link.url && link.url.trim() !== '');
+        formData.append('links', JSON.stringify(validLinks));
+        
+        // ✅ Handle images: send files as separate fields with same key 'images'
+        uploadedImages.forEach((file) => {
+          formData.append('images', file);
+        });
+        
+        // ✅ Handle image URLs: also as 'images' key but as JSON string
+        const validImageUrls = imageUrlInputs.filter(url => url && url.trim() !== '');
+        if (validImageUrls.length > 0) {
+          // Append image URLs as a JSON string field
+          formData.append('imageUrls', JSON.stringify(validImageUrls));
+        }
+        
+        // Send as FormData
+        const response = await createNews(formData, true);
+        
+        if (response.success) {
+          alert(response.message || 'News created successfully!');
+          window.location.href = '/news';
+        } else {
+          alert(response.message || 'Failed to create news');
+        }
+      } else {
+        // Use JSON for data without files
+        const allImages: string[] = [...imageUrlInputs.filter(url => url && url.trim() !== '')];
+        
+        const formattedContent = data.content.map(item => ({
+          title: item.title
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/_(.*?)_/g, '<u>$1</u>'),
+          text: item.text,
+        }));
+        
+        const payload = {
+          title: data.title,
+          author: data.author || '',
+          publishedAt: data.publishedAt || new Date().toISOString(),
+          categories: data.categories,
+          content: formattedContent,
+          images: allImages,
+          links: data.links.filter(link => link.url && link.url.trim() !== ''),
+        };
+        
+        const response = await createNews(payload, false);
+        
+        if (response.success) {
+          alert(response.message || 'News created successfully!');
+          window.location.href = '/news';
+        } else {
+          alert(response.message || 'Failed to create news');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred while creating the news';
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-const onSubmit = async (data: NewsFormData) => {
-  try {
-    console.log('=== SUBMITTING NEWS DATA AS JSON ===');
-    
-    // Collect all image URLs (from both uploaded files and URL inputs)
-    const allImages: string[] = [];
-    
-    // For uploaded files, convert to base64 or temporary URLs
-    // Note: This is for preview only - you need to upload files separately
-    for (const file of uploadedImages) {
-      // Convert file to base64 string
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-      });
-      allImages.push(base64);
-    }
-    
-    // Add image URLs
-    const validImageUrls = imageUrlInputs.filter(url => url && url.trim() !== '');
-    allImages.push(...validImageUrls);
-    
-    // Prepare the payload as JSON (matching backend schema)
-    const payload = {
-      title: data.title,
-      author: data.author || '',
-      publishedAt: data.publishedAt || new Date().toISOString(),
-      categories: data.categories, // This is already an array
-      content: data.content.map(item => ({
-        title: item.title
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/_(.*?)_/g, '<u>$1</u>'),
-        text: item.text,
-      })),
-      images: allImages, // Array of strings (URLs or base64)
-      links: data.links
-        .filter(link => link.url && link.url.trim() !== '')
-        .map(link => ({
-          url: link.url,
-          text: link.text || '',
-        })),
-    };
-    
-    console.log('Sending payload:', JSON.stringify(payload, null, 2));
-    
-    const response = await api.post('/admin/news', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (response.data.success || response.status === 200 || response.status === 201) {
-      alert('News created successfully!');
-      window.location.href = '/news';
-    } else {
-      alert(response.data.message || 'Failed to create news');
-    }
-  } catch (error: any) {
-    console.error('Error submitting form:', error);
-    const errorMessage = error.response?.data?.message || 'An error occurred while creating the news';
-    alert(errorMessage);
-  }
-};
 
   return (
     <div className="min-h-screen bg-gray p-6 font-satoshi" dir="ltr">
@@ -518,20 +552,22 @@ const onSubmit = async (data: NewsFormData) => {
                 {/* Categories */}
                 {previewData.categories && previewData.categories.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {previewData.categories.map((catId) => (
-                      <span key={catId} className={`rounded-full px-3 py-1 text-xs font-medium ${getCategoryColor(catId)}`}>
-                        {getCategoryIcon(catId)} {getCategoryName(catId)}
+                    {previewData.categories.map((catId, idx) => (
+                      <span 
+                        key={catId} 
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${getCategoryColorById(catId, idx)}`}
+                      >
+                        {getCategoryIconById(catId, idx)} {getCategoryName(catId)}
                       </span>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Images Gallery - Show both uploaded and URL images */}
+              {/* Images Gallery - Show both uploaded files and URLs */}
               {((uploadedImages.length > 0) || (imageUrlInputs.filter(u => u).length > 0)) && (
                 <div className="mb-8">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {/* Uploaded images preview */}
                     {uploadedImages.map((file, idx) => (
                       <img
                         key={`upload-${idx}`}
@@ -541,7 +577,6 @@ const onSubmit = async (data: NewsFormData) => {
                         style={{ height: '250px' }}
                       />
                     ))}
-                    {/* URL images preview */}
                     {imageUrlInputs.filter(url => url).map((url, idx) => (
                       <img
                         key={`url-${idx}`}
@@ -624,12 +659,31 @@ const onSubmit = async (data: NewsFormData) => {
                     </div>
                   </div>
 
-                  {selectedCategories.length > 0 && (
+                  {isLoadingCategories && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="text-sm text-body">Loading categories...</div>
+                    </div>
+                  )}
+
+                  {categoriesError && (
+                    <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                      Error loading categories. Please refresh the page.
+                    </div>
+                  )}
+
+                  {!isLoadingCategories && !categoriesError && selectedCategories.length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-2">
-                      {selectedCategories.map((catId) => (
-                        <span key={catId} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${getCategoryColor(catId)}`}>
-                          {getCategoryIcon(catId)} {getCategoryName(catId)}
-                          <button type="button" onClick={() => removeCategory(catId)} className="ml-1 rounded-full p-0.5 hover:bg-black/10">
+                      {selectedCategories.map((catId, idx) => (
+                        <span 
+                          key={catId} 
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${getCategoryColorById(catId, idx)}`}
+                        >
+                          {getCategoryIconById(catId, idx)} {getCategoryName(catId)}
+                          <button 
+                            type="button" 
+                            onClick={() => removeCategory(catId)} 
+                            className="ml-1 rounded-full p-0.5 hover:bg-black/10"
+                          >
                             <MdClose size={12} />
                           </button>
                         </span>
@@ -637,36 +691,62 @@ const onSubmit = async (data: NewsFormData) => {
                     </div>
                   )}
 
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex w-full items-center justify-between rounded-lg border border-stroke bg-white px-5 py-3 text-left text-body focus:border-primary focus:outline-none"
-                    >
-                      <span>{selectedCategories.length === 0 ? 'Select categories...' : `${selectedCategories.length} selected`}</span>
-                      <MdArrowDropDown size={20} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isDropdownOpen && (
-                      <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-60 overflow-y-auto rounded-lg border border-stroke bg-white shadow-4">
-                        {categories.map((category) => (
-                          <label key={category.id} className="flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray">
-                            <input
-                              type="checkbox"
-                              checked={selectedCategories.includes(category.id)}
-                              onChange={() => handleCategorySelect(category.id)}
-                              className="h-4 w-4 rounded border-stroke text-primary"
-                            />
-                            <span className="flex items-center gap-2 text-sm text-black">{category.icon} {category.name}</span>
-                            {selectedCategories.includes(category.id) && <MdCheck size={16} className="ml-auto text-primary" />}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {errors.categories && <p className="mt-2 text-sm text-meta-1">{errors.categories.message}</p>}
+                  {!isLoadingCategories && !categoriesError && (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="flex w-full items-center justify-between rounded-lg border border-stroke bg-white px-5 py-3 text-left text-body focus:border-primary focus:outline-none"
+                      >
+                        <span>
+                          {selectedCategories.length === 0 
+                            ? 'Select categories...' 
+                            : `${selectedCategories.length} selected`}
+                        </span>
+                        <MdArrowDropDown size={20} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isDropdownOpen && (
+                        <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-60 overflow-y-auto rounded-lg border border-stroke bg-white shadow-4">
+                          {categories.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-body">
+                              No categories available. Please add categories first.
+                            </div>
+                          ) : (
+                            categories.map((category: any, idx: number) => {
+                              const categoryId = category.id || category._id;
+                              return (
+                                <label 
+                                  key={categoryId} 
+                                  className="flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.includes(categoryId)}
+                                    onChange={() => handleCategorySelect(categoryId)}
+                                    className="h-4 w-4 rounded border-stroke text-primary"
+                                  />
+                                  <span className="flex items-center gap-2 text-sm text-black">
+                                    {getCategoryIcon(idx)} {category.name}
+                                  </span>
+                                  {selectedCategories.includes(categoryId) && (
+                                    <MdCheck size={16} className="ml-auto text-primary" />
+                                  )}
+                                </label>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {errors.categories && (
+                    <p className="mt-2 text-sm text-meta-1">{errors.categories.message}</p>
+                  )}
                 </div>
 
-                {/* Images Card - Multi Image Upload */}
+                {/* Images Card */}
                 <div className="rounded-2xl bg-white p-6 shadow-card">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -690,7 +770,6 @@ const onSubmit = async (data: NewsFormData) => {
                     </label>
                   </div>
 
-                  {/* Uploaded Images Previews */}
                   {uploadedImages.length > 0 && (
                     <div className="mb-4">
                       <p className="text-xs text-body mb-2">Uploaded Images:</p>
@@ -715,7 +794,6 @@ const onSubmit = async (data: NewsFormData) => {
                     </div>
                   )}
 
-                  {/* Image URL Inputs */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-body">Image URLs:</p>

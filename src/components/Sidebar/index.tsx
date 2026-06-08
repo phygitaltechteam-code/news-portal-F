@@ -30,6 +30,7 @@ const Sidebar = ({sidebarOpen, setSidebarOpen}: SidebarProps) => {
             path: '/admin/news',
             subRoutes: [
               {label: 'Create News', path: '/admin/news/create'},
+              {label: 'All News', path: '/admin/news/allnews'},
               // {label: 'News List', path: '/admin/news/list'},
               // {label: 'Pending News', path: '/admin/news/pending'},
             ],
