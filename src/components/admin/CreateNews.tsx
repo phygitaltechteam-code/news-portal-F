@@ -24,32 +24,78 @@ import {
   MdCloudUpload,
   MdEdit,
   MdOutlinePublishedWithChanges,
+  MdWarning,
 } from 'react-icons/md';
 import {useCreateNews} from './newsApi';
 import { useGetCategories } from '../category/categoryApi';
 
-// Frontend Schema (for validation only)
+// ============ VALIDATION SCHEMAS ============
+
+// Base schema for API (flexible)
+export const createNewsSchema = z.object({
+    title: z.string(),
+    author: z.string().optional(),
+    publishedAt: z.string().optional(),
+    categories: z.array(z.string()).optional(),
+    content: z.array(z.object({
+        title: z.string(),
+        text: z.string(),
+    })).optional(),
+    images: z.array(z.string()).optional(),
+    links: z.array(z.object({
+        url: z.string().url(),
+        text: z.string().optional(),
+    })).optional(),
+});
+
+// Frontend strict validation schema
 const newsSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  author: z.string().optional(),
-  publishedAt: z.string().optional(),
-  categories: z.array(z.string()).min(1, 'At least one category is required'),
+  title: z.string()
+    .min(1, 'Title is required')
+    .min(3, 'Title must be at least 3 characters')
+    .max(200, 'Title cannot exceed 200 characters'),
+  author: z.string()
+    .max(100, 'Author name cannot exceed 100 characters')
+    .optional(),
+  publishedAt: z.string()
+    .optional()
+    .refine((date) => {
+      if (!date) return true;
+      const parsedDate = new Date(date);
+      return !isNaN(parsedDate.getTime());
+    }, 'Invalid date format'),
+  categories: z.array(z.string())
+    .min(1, 'At least one category is required'),
   content: z.array(
     z.object({
-      title: z.string(),
-      text: z.string(),
-    }),
-  ),
-  images: z.array(z.string()).optional(),
+      title: z.string()
+        .max(100, 'Section title cannot exceed 100 characters')
+        .optional(),
+      text: z.string()
+        .min(1, 'Content text is required')
+        .min(10, 'Content must be at least 10 characters'),
+    })
+  ).min(1, 'At least one content section is required'),
+  images: z.array(z.string())
+    .optional(),
   links: z.array(
     z.object({
-      url: z.string().url('Must be a valid URL'),
-      text: z.string().optional(),
-    }),
-  ),
+      url: z.string()
+        .url('Please enter a valid URL (e.g., https://example.com)')
+        .refine((url) => {
+          if (!url) return true;
+          return /^(https?:\/\/)/.test(url);
+        }, 'URL must start with http:// or https://'),
+      text: z.string()
+        .max(200, 'Link text cannot exceed 200 characters')
+        .optional(),
+    })
+  ).optional(),
 });
 
 type NewsFormData = z.infer<typeof newsSchema>;
+
+// ============ HELPER FUNCTIONS ============
 
 // Helper function to get random color for categories
 const getCategoryColor = (index: number) => {
@@ -69,15 +115,45 @@ const getCategoryIcon = (index: number) => {
   return icons[index % icons.length];
 };
 
+// Validation helper functions
+const isValidImageUrl = (url: string): boolean => {
+  if (!url || url.trim() === '') return false;
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const validateContentSections = (content: { title: string; text: string }[]): boolean => {
+  return content.length > 0 && content.some(section => section.text && section.text.trim().length >= 10);
+};
+
+// ============ COMPONENTS ============
+
+// Validation Error Component
+const ValidationError = ({ error }: { error?: { message?: string } }) => {
+  if (!error?.message) return null;
+  return (
+    <div className="mt-1 flex items-center gap-1 text-sm text-meta-1">
+      <MdWarning size={14} />
+      <span>{error.message}</span>
+    </div>
+  );
+};
+
 // Rich Text Editor Component
 const RichTextEditor = ({
   value,
   onChange,
   placeholder,
+  error,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  error?: string;
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -101,73 +177,76 @@ const RichTextEditor = ({
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stroke bg-white">
-      <div className="flex flex-wrap gap-1 border-b border-stroke bg-gray p-2">
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Bold"
-        >
-          <MdFormatBold size={18} />
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('italic'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Italic"
-        >
-          <MdFormatItalic size={18} />
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('underline'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Underline"
-        >
-          <MdFormatUnderlined size={18} />
-        </button>
-        <div className="mx-1 h-6 w-px bg-stroke"></div>
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyLeft'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Align Left"
-        >
-          <MdFormatAlignLeft size={18} />
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyCenter'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Align Center"
-        >
-          <MdFormatAlignCenter size={18} />
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); execCommand('justifyRight'); }}
-          className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
-          title="Align Right"
-        >
-          <MdFormatAlignRight size={18} />
-        </button>
-      </div>
-
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        className={`prose prose-sm min-h-[200px] max-w-none p-4 text-left text-body outline-none focus:ring-1 focus:ring-primary ${isFocused ? 'ring-1 ring-primary' : ''}`}
-        style={{cursor: 'text', direction: 'ltr', textAlign: 'left'}}
-      />
-      {(!value || value === '<br>') && !isFocused && (
-        <div className="pointer-events-none absolute ml-4 mt-[-180px] text-gray-400">
-          {placeholder || 'Write your content here...'}
+    <div className="space-y-1">
+      <div className={`overflow-hidden rounded-lg border ${error ? 'border-meta-1' : 'border-stroke'} bg-white`}>
+        <div className="flex flex-wrap gap-1 border-b border-stroke bg-gray p-2">
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Bold"
+          >
+            <MdFormatBold size={18} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('italic'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Italic"
+          >
+            <MdFormatItalic size={18} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('underline'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Underline"
+          >
+            <MdFormatUnderlined size={18} />
+          </button>
+          <div className="mx-1 h-6 w-px bg-stroke"></div>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('justifyLeft'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Align Left"
+          >
+            <MdFormatAlignLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('justifyCenter'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Align Center"
+          >
+            <MdFormatAlignCenter size={18} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('justifyRight'); }}
+            className="rounded-md p-1.5 text-body transition-colors hover:bg-white hover:text-primary"
+            title="Align Right"
+          >
+            <MdFormatAlignRight size={18} />
+          </button>
         </div>
-      )}
+
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleInput}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className={`prose prose-sm min-h-[200px] max-w-none p-4 text-left text-body outline-none focus:ring-1 focus:ring-primary ${isFocused ? 'ring-1 ring-primary' : ''}`}
+          style={{cursor: 'text', direction: 'ltr', textAlign: 'left'}}
+        />
+        {(!value || value === '<br>') && !isFocused && (
+          <div className="pointer-events-none absolute ml-4 mt-[-180px] text-gray-400">
+            {placeholder || 'Write your content here...'}
+          </div>
+        )}
+      </div>
+      {error && <ValidationError error={{ message: error }} />}
     </div>
   );
 };
@@ -248,19 +327,22 @@ const FormattedTextInput = ({value, onChange, placeholder, error}: any) => {
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setShowToolbar(true)}
         onBlur={() => setTimeout(() => setShowToolbar(false), 200)}
-        className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm font-medium text-black placeholder-body/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        className={`w-full rounded-lg border ${error ? 'border-meta-1' : 'border-stroke'} bg-white px-4 py-2.5 text-left text-sm font-medium text-black placeholder-body/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
         placeholder={placeholder}
         dir="ltr"
       />
 
       {error && (
         <p className="mt-1 flex items-center gap-1 text-sm text-meta-1">
-          <span>⚠️</span> {error}
+          <MdWarning size={14} />
+          <span>{error}</span>
         </p>
       )}
     </div>
   );
 };
+
+// ============ MAIN COMPONENT ============
 
 const CreateNews = () => {
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
@@ -270,6 +352,7 @@ const CreateNews = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imageUrlInputs, setImageUrlInputs] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationSummary, setValidationSummary] = useState<string[]>([]);
 
   // Fetch categories from API
   const { data: categoriesData, isLoading: isLoadingCategories, error: categoriesError } = useGetCategories();
@@ -296,7 +379,8 @@ const CreateNews = () => {
     handleSubmit,
     watch,
     setValue,
-    formState: {errors},
+    trigger,
+    formState: {errors, isValid},
   } = useForm<NewsFormData>({
     resolver: zodResolver(newsSchema),
     defaultValues: {
@@ -308,6 +392,7 @@ const CreateNews = () => {
       images: [],
       links: [{url: '', text: ''}],
     },
+    mode: 'onChange', // Validate on change
   });
 
   const {
@@ -332,12 +417,14 @@ const CreateNews = () => {
       : [...selectedCategories, categoryId];
     setSelectedCategories(updated);
     setValue('categories', updated);
+    trigger('categories'); // Trigger validation
   };
 
   const removeCategory = (categoryId: string) => {
     const updated = selectedCategories.filter((id) => id !== categoryId);
     setSelectedCategories(updated);
     setValue('categories', updated);
+    trigger('categories'); // Trigger validation
   };
 
   const getCategoryName = (id: string) => {
@@ -357,9 +444,17 @@ const CreateNews = () => {
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setUploadedImages(prev => [...prev, ...files]);
     
-    // Don't create preview URLs immediately - we'll handle them in the preview
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/');
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
+      if (!isValidType) alert(`${file.name} is not an image file`);
+      if (!isValidSize) alert(`${file.name} exceeds 5MB size limit`);
+      return isValidType && isValidSize;
+    });
+    
+    setUploadedImages(prev => [...prev, ...validFiles]);
   };
 
   const removeUploadedImage = (index: number) => {
@@ -380,8 +475,64 @@ const CreateNews = () => {
     setImageUrlInputs(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Validate all form data before submission
+  const validateFormData = (data: NewsFormData): string[] => {
+    const errors: string[] = [];
+    
+    // Validate title
+    if (!data.title || data.title.length < 3) {
+      errors.push('Title must be at least 3 characters long');
+    }
+    
+    // Validate categories
+    if (!data.categories || data.categories.length === 0) {
+      errors.push('Please select at least one category');
+    }
+    
+    // Validate content sections
+    if (!data.content || data.content.length === 0) {
+      errors.push('At least one content section is required');
+    } else {
+      const hasValidContent = data.content.some(section => 
+        section.text && section.text.trim().length >= 10
+      );
+      if (!hasValidContent) {
+        errors.push('Each content section must have at least 10 characters of text');
+      }
+    }
+    
+    // Validate image URLs
+    const invalidImageUrls = imageUrlInputs.filter(url => url && !isValidImageUrl(url));
+    if (invalidImageUrls.length > 0) {
+      errors.push('Please enter valid image URLs (must start with http:// or https://)');
+    }
+    
+    // Validate links
+    if (data.links) {
+      data.links.forEach((link, index) => {
+        if (link.url && !link.url.match(/^https?:\/\/.+/)) {
+          errors.push(`Link #${index + 1} has an invalid URL format`);
+        }
+      });
+    }
+    
+    return errors;
+  };
+
   const onSubmit = async (data: NewsFormData) => {
+    // Clear previous validation summary
+    setValidationSummary([]);
+    
+    // Perform additional validation
+    const validationErrors = validateFormData(data);
+    if (validationErrors.length > 0) {
+      setValidationSummary(validationErrors);
+      alert(`Please fix the following errors:\n${validationErrors.join('\n')}`);
+      return;
+    }
+    
     setIsSubmitting(true);
+    
     try {
       // Check if there are any uploaded files
       const hasFiles = uploadedImages.length > 0;
@@ -390,15 +541,17 @@ const CreateNews = () => {
         // Use FormData for file uploads
         const formData = new FormData();
         
-        // Add basic fields as JSON strings
+        // Add basic fields
         formData.append('title', data.title);
         if (data.author) formData.append('author', data.author);
         if (data.publishedAt) formData.append('publishedAt', data.publishedAt);
         
-        // ✅ Categories should be sent as JSON string (array)
-        formData.append('categories', JSON.stringify(data.categories));
+        // Add categories - Fixed the loop
+        data.categories.forEach((category) => {
+          formData.append('categories[]', category);
+        });
         
-        // ✅ Content should be sent as JSON string (array of objects)
+        // Format and add content
         const formattedContent = data.content.map(item => ({
           title: item.title
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -408,19 +561,18 @@ const CreateNews = () => {
         }));
         formData.append('content', JSON.stringify(formattedContent));
         
-        // ✅ Links should be sent as JSON string (array of objects)
+        // Add valid links
         const validLinks = data.links.filter(link => link.url && link.url.trim() !== '');
         formData.append('links', JSON.stringify(validLinks));
         
-        // ✅ Handle images: send files as separate fields with same key 'images'
+        // Add uploaded images
         uploadedImages.forEach((file) => {
           formData.append('images', file);
         });
         
-        // ✅ Handle image URLs: also as 'images' key but as JSON string
-        const validImageUrls = imageUrlInputs.filter(url => url && url.trim() !== '');
+        // Add image URLs
+        const validImageUrls = imageUrlInputs.filter(url => url && url.trim() !== '' && isValidImageUrl(url));
         if (validImageUrls.length > 0) {
-          // Append image URLs as a JSON string field
           formData.append('imageUrls', JSON.stringify(validImageUrls));
         }
         
@@ -428,14 +580,14 @@ const CreateNews = () => {
         const response = await createNews(formData, true);
         
         if (response.success) {
-          alert(response.message || 'News created successfully!');
+          alert('News created successfully!');
           window.location.href = '/news';
         } else {
           alert(response.message || 'Failed to create news');
         }
       } else {
         // Use JSON for data without files
-        const allImages: string[] = [...imageUrlInputs.filter(url => url && url.trim() !== '')];
+        const allImages: string[] = [...imageUrlInputs.filter(url => url && url.trim() !== '' && isValidImageUrl(url))];
         
         const formattedContent = data.content.map(item => ({
           title: item.title
@@ -458,8 +610,8 @@ const CreateNews = () => {
         const response = await createNews(payload, false);
         
         if (response.success) {
-          alert(response.message || 'News created successfully!');
-          window.location.href = '/news';
+          alert('News created successfully!');
+          // window.location.href = '/news';
         } else {
           alert(response.message || 'Failed to create news');
         }
@@ -510,10 +662,15 @@ const CreateNews = () => {
           {/* Title and Author Inputs */}
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-black">Title *</label>
+              <label className="mb-1 block text-sm font-medium text-black">
+                Title <span className="text-meta-1">*</span>
+              </label>
               <FormattedTextInput
                 value={watchTitle}
-                onChange={(value: string) => setValue('title', value)}
+                onChange={(value: string) => {
+                  setValue('title', value);
+                  trigger('title');
+                }}
                 placeholder="Enter news title..."
                 error={errors.title?.message}
               />
@@ -523,12 +680,28 @@ const CreateNews = () => {
               <input
                 type="text"
                 {...register('author')}
-                className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm text-black focus:border-primary focus:outline-none"
+                className={`w-full rounded-lg border ${errors.author ? 'border-meta-1' : 'border-stroke'} bg-white px-4 py-2.5 text-left text-sm text-black focus:border-primary focus:outline-none`}
                 placeholder="Author name"
               />
+              <ValidationError error={errors.author} />
             </div>
           </div>
         </div>
+
+        {/* Validation Summary */}
+        {validationSummary.length > 0 && (
+          <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200">
+            <div className="flex items-center gap-2 mb-2">
+              <MdWarning className="text-meta-1" size={20} />
+              <h3 className="font-semibold text-meta-1">Please fix the following errors:</h3>
+            </div>
+            <ul className="list-disc list-inside space-y-1">
+              {validationSummary.map((error, idx) => (
+                <li key={idx} className="text-sm text-red-700">{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Main Content Area */}
         {activeTab === 'preview' ? (
@@ -654,7 +827,9 @@ const CreateNews = () => {
                       <MdCategory className="h-5 w-5 text-meta-6" />
                     </div>
                     <div>
-                      <h2 className="font-semibold text-black">Categories</h2>
+                      <h2 className="font-semibold text-black">
+                        Categories <span className="text-meta-1">*</span>
+                      </h2>
                       <p className="text-sm text-body">Select relevant categories</p>
                     </div>
                   </div>
@@ -696,7 +871,7 @@ const CreateNews = () => {
                       <button
                         type="button"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex w-full items-center justify-between rounded-lg border border-stroke bg-white px-5 py-3 text-left text-body focus:border-primary focus:outline-none"
+                        className={`flex w-full items-center justify-between rounded-lg border ${errors.categories ? 'border-meta-1' : 'border-stroke'} bg-white px-5 py-3 text-left text-body focus:border-primary focus:outline-none`}
                       >
                         <span>
                           {selectedCategories.length === 0 
@@ -741,9 +916,7 @@ const CreateNews = () => {
                     </div>
                   )}
                   
-                  {errors.categories && (
-                    <p className="mt-2 text-sm text-meta-1">{errors.categories.message}</p>
-                  )}
+                  <ValidationError error={errors.categories} />
                 </div>
 
                 {/* Images Card */}
@@ -842,6 +1015,7 @@ const CreateNews = () => {
                     {...register('publishedAt')}
                     className="w-full rounded-lg border border-stroke bg-white px-4 py-2.5 text-left text-sm text-black focus:border-primary focus:outline-none"
                   />
+                  <ValidationError error={errors.publishedAt} />
                 </div>
               </div>
 
@@ -855,7 +1029,9 @@ const CreateNews = () => {
                         <MdDescription className="h-5 w-5 text-meta-5" />
                       </div>
                       <div>
-                        <h2 className="font-semibold text-black">Content Sections</h2>
+                        <h2 className="font-semibold text-black">
+                          Content Sections <span className="text-meta-1">*</span>
+                        </h2>
                         <p className="text-sm text-body">Organize your article with rich formatting</p>
                       </div>
                     </div>
@@ -887,18 +1063,27 @@ const CreateNews = () => {
                         <div className="space-y-3 p-4">
                           <FormattedTextInput
                             value={watch(`content.${index}.title`) || ''}
-                            onChange={(value: string) => setValue(`content.${index}.title`, value)}
+                            onChange={(value: string) => {
+                              setValue(`content.${index}.title`, value);
+                              trigger(`content.${index}.title`);
+                            }}
                             placeholder="Section title (optional)"
+                            error={errors.content?.[index]?.title?.message}
                           />
                           <RichTextEditor
                             value={watch(`content.${index}.text`) || ''}
-                            onChange={(value) => setValue(`content.${index}.text`, value)}
+                            onChange={(value) => {
+                              setValue(`content.${index}.text`, value);
+                              trigger(`content.${index}.text`);
+                            }}
                             placeholder="Write your content here..."
+                            error={errors.content?.[index]?.text?.message}
                           />
                         </div>
                       </div>
                     ))}
                   </div>
+                  <ValidationError error={errors.content} />
                 </div>
 
                 {/* Related Links */}
@@ -925,16 +1110,22 @@ const CreateNews = () => {
                   <div className="space-y-3">
                     {linkFields.map((field, index) => (
                       <div key={field.id} className="flex flex-col gap-2 rounded-lg border border-stroke p-3 sm:flex-row">
-                        <input
-                          {...register(`links.${index}.text`)}
-                          className="flex-1 rounded-md border border-stroke bg-gray px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none"
-                          placeholder="Link text (optional)"
-                        />
-                        <input
-                          {...register(`links.${index}.url`)}
-                          className="flex-[2] rounded-md border border-stroke bg-gray px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none"
-                          placeholder="https://example.com"
-                        />
+                        <div className="flex-1">
+                          <input
+                            {...register(`links.${index}.text`)}
+                            className={`w-full rounded-md border ${errors.links?.[index]?.text ? 'border-meta-1' : 'border-stroke'} bg-gray px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none`}
+                            placeholder="Link text (optional)"
+                          />
+                          <ValidationError error={errors.links?.[index]?.text} />
+                        </div>
+                        <div className="flex-[2]">
+                          <input
+                            {...register(`links.${index}.url`)}
+                            className={`w-full rounded-md border ${errors.links?.[index]?.url ? 'border-meta-1' : 'border-stroke'} bg-gray px-4 py-2.5 text-left text-sm text-body focus:border-primary focus:outline-none`}
+                            placeholder="https://example.com"
+                          />
+                          <ValidationError error={errors.links?.[index]?.url} />
+                        </div>
                         {linkFields.length > 1 && (
                           <button type="button" onClick={() => removeLink(index)} className="rounded-md bg-meta-1/10 p-2 text-meta-1 hover:bg-meta-1/20">
                             <MdDelete size={18} />
@@ -953,11 +1144,24 @@ const CreateNews = () => {
                 <button type="button" onClick={() => window.history.back()} className="rounded-lg border border-stroke bg-white px-8 py-2.5 font-medium text-body transition-colors hover:bg-gray">
                   Cancel
                 </button>
-                <button type="submit" disabled={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-2.5 font-medium text-white shadow-default transition-all hover:bg-primary/90 disabled:opacity-50">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting || !isValid} 
+                  className={`flex items-center justify-center gap-2 rounded-lg px-8 py-2.5 font-medium text-white shadow-default transition-all ${
+                    isSubmitting || !isValid 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
+                >
                   <MdSave size={18} />
                   {isSubmitting ? 'Publishing...' : 'Publish News'}
                 </button>
               </div>
+              {!isValid && Object.keys(errors).length > 0 && (
+                <p className="mt-2 text-center text-sm text-meta-1">
+                  Please fix all validation errors before publishing
+                </p>
+              )}
             </div>
           </form>
         )}
