@@ -5,8 +5,9 @@ import { useNavigate } from '@tanstack/react-router'; // TanStack Router import
 import { GenericTable, Column } from '../Forms/Table/GenericTable';
 import { MdDelete, MdEdit, MdVisibility, MdCheckCircle, MdCancel } from 'react-icons/md';
 import toast from 'react-hot-toast';
-import {useGetNewsAdmin} from './newsApi';
+// import {useGetNewsAdmin} from './newsApi';
 import { useDeleteNews } from './newsApi';
+import { useGetNewsInfo } from '@/lib/Auth/news/newsall';
 
 
 
@@ -28,7 +29,7 @@ interface NewsItem {
 
 const AllNews = () => {
   const navigate = useNavigate(); // Initialize TanStack Router navigate
-  const { data: apiResponse, isLoading, error, refetch } = useGetNewsAdmin();
+  const { data: apiResponse, isLoading, error, refetch } = useGetNewsInfo();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);

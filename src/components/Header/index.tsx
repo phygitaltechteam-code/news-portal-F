@@ -1,13 +1,9 @@
-import {Link} from '@tanstack/react-router';
+import {Link, useLocation} from '@tanstack/react-router';
 import DropdownUser from './DropdownUser';
-import LogoIcon from '../../assets/images/logo/logo-icon.svg';
+// import LogoIcon from '../../assets/images/logo/logo-icon.svg';
 import DarkModeSwitcher from './DarkModeSwitcher';
 
 import {FiMenu, FiX} from 'react-icons/fi';
-import {LuSearch} from 'react-icons/lu';
-import React from 'react';
-// import Logo from '../../../public/logo.png';
-import DropdownNotification from './DropdownNotification';
 import {useAuthContext} from '@/context/AuthContext';
 
 const Header = (props: {
@@ -15,47 +11,44 @@ const Header = (props: {
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
   const {user} = useAuthContext();
+  const location = useLocation();
+
+  // Get page title based on current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+
+    if (path === '/admin/dashboard') return 'Dashboard';
+    if (path === '/admin/news/allnews') return 'News Management';
+    if (path === '/admin/category/create') return 'Category Management';
+    if (path === '/admin/magazine') return 'Magazine Management';
+    if (path === '/admin/users') return 'Users Management';
+    if (path === '/admin/settings') return 'Settings';
+
+    return '';
+  };
 
   return (
-    <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none border-b border-stroke dark:border-strokedark">
-      <div className="flex flex-grow items-center justify-between px-4 py-3 md:px-6 2xl:px-11">
-        <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
-          {/* <!-- Hamburger Toggle BTN --> */}
+    <header className="sticky top-0 z-999 flex w-full border-b border-stroke bg-white drop-shadow-1 dark:border-strokedark dark:bg-boxdark dark:drop-shadow-none">
+      <div className="flex w-full flex-grow items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 2xl:px-11">
+        {/* Left Section - Hamburger + Page Title */}
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+          {/* Hamburger Menu Button - Visible on mobile/tablet */}
           <button
-            aria-controls="sidebar"
-            onClick={(e) => {
-              e.stopPropagation();
-              props.setSidebarOpen(!props.sidebarOpen);
-            }}
-            className="z-99999 block rounded-lg border border-primary/30 bg-primary/5 p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden hover:bg-primary/10 transition-colors"
+            onClick={() => props.setSidebarOpen(!props.sidebarOpen)}
+            className="rounded-lg p-1.5 text-black transition-colors hover:bg-primary/10 dark:text-white lg:hidden"
           >
-            <span className="relative block h-5.5 w-5.5 cursor-pointer">
-              {props.sidebarOpen ? (
-                <FiX className="h-full w-full text-black dark:text-white" />
-              ) : (
-                <FiMenu className="h-full w-full text-black dark:text-white" />
-              )}
-            </span>
+            <FiMenu className="h-5 w-5" />
           </button>
-          {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className="block flex-shrink-0 lg:hidden" to="/">
-            {/* <img src={Logo} alt="Logo" className="h-10 w-auto object-contain" /> */}
-          </Link>
+          {/* Page Title - Visible from sm up */}
+          <h1 className="text-sm font-semibold text-black dark:text-white sm:text-base md:text-lg lg:text-xl">
+            {getPageTitle()}
+          </h1>
         </div>
 
-        
-
-        <div className="hidden sm:block flex-1 max-w-md mx-4">
-          {/* Optional Search or Space */}
-        </div>
-
-        <div className="flex items-center gap-3 2xsm:gap-7">
-          {/* <ul> {user?.role !== 'ADMIN' && <DropdownNotification />}</ul> */}
-          {/* <ul className="flex items-center gap-2 2xsm:gap-4">
-            <DarkModeSwitcher />
-          </ul> */}
-
+        {/* Right Section */}
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+          {/* User Dropdown */}
           <DropdownUser />
         </div>
       </div>
